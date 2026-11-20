@@ -1,37 +1,64 @@
 import { badgeSvg, formatReport, scoreSource, shieldsEndpoint } from "./index.js";
+import { bucketRoute, handleStats, scheduleTrack } from "./metrics.js";
+const WORKER_NAME = "agent-ready-score";
 const MAX_SPEC_CHARS = 2_000_000;
 const TIMEOUT_MS = 20000;
 export default {
-    async fetch(request, env) {
-        return handleRequest(request, env);
+    async fetch(request, env, ctx) {
+        return handleRequest(request, env, ctx);
     },
 };
-export async function handleRequest(request, env = {}) {
+export async function handleRequest(request, env = {}, ctx) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
+    if (path === "/stats" || path === "/stats.json" || path === "/stats.html") {
+        if (request.method === "GET" || request.method === "HEAD") {
+            return handleStats(env, WORKER_NAME, path === "/stats.json" ? "/stats" : path, "Agent-Ready Score");
+        }
+    }
     if (request.method === "OPTIONS")
         return cors(new Response(null, { status: 204 }));
+    let response;
+    let scan = null;
+    let badge = false;
     try {
         if (path === "/api/score" && (request.method === "POST" || request.method === "GET")) {
-            return cors(await handleScore(request, url));
+            response = cors(await handleScore(request, url));
+            scan = response.ok ? "success" : "fail";
         }
-        if (path === "/badge" || path === "/badge.json" || path === "/badge.svg") {
-            return cors(await handleBadge(request, url, path));
+        else if (path === "/badge" || path === "/badge.json" || path === "/badge.svg") {
+            response = cors(await handleBadge(request, url, path));
+            badge = true;
+            if (url.searchParams.get("url") || url.searchParams.get("spec")) {
+                scan = response.ok ? "success" : "fail";
+            }
+        }
+        else if (env.ASSETS) {
+            const asset = await env.ASSETS.fetch(request);
+            if (asset.status !== 404)
+                response = asset;
+            else if (request.method === "GET" && (path === "/" || path === "/index.html")) {
+                response = new Response(LANDING_FALLBACK, { headers: { "content-type": "text/html; charset=utf-8" } });
+            }
+            else {
+                response = new Response("Not found", { status: 404 });
+            }
+        }
+        else if (request.method === "GET" && (path === "/" || path === "/index.html")) {
+            response = new Response(LANDING_FALLBACK, { headers: { "content-type": "text/html; charset=utf-8" } });
+        }
+        else {
+            response = new Response("Not found", { status: 404 });
         }
     }
     catch (e) {
         console.error("agent-ready-score error", { path, message: e.message });
-        return cors(json({ ok: false, error: e.message || "Internal error" }, 500));
+        response = cors(json({ ok: false, error: e.message || "Internal error" }, 500));
+        if (path === "/api/score" || path.startsWith("/badge"))
+            scan = "fail";
     }
-    if (env.ASSETS) {
-        const asset = await env.ASSETS.fetch(request);
-        if (asset.status !== 404)
-            return asset;
-    }
-    if (request.method === "GET" && (path === "/" || path === "/index.html")) {
-        return new Response(LANDING_FALLBACK, { headers: { "content-type": "text/html; charset=utf-8" } });
-    }
-    return new Response("Not found", { status: 404 });
+    scheduleTrack(ctx, env, request, { worker: WORKER_NAME, route: bucketRoute(path), scan, badge });
+    return response;
 }
 async function handleScore(request, url) {
     const input = await readInput(request, url);

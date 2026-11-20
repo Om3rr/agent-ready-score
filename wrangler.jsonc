@@ -9,5 +9,12 @@
   "assets": {
     "directory": "worker/public",
     "binding": "ASSETS"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "METRICS",
+      "database_name": "studio-metrics",
+      "database_id": "3448df02-bdfb-4f45-8279-6dbf1ae9f83f"
+    }
+  ]
 }
