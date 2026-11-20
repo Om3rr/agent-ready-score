@@ -1,0 +1,172 @@
+openapi: 3.1.0
+info:
+  title: Widgets API
+  version: 1.2.0
+  description: >
+    A small public API for listing and creating widgets. Agents may call every
+    operation with an OAuth 2.0 access token that includes the right scope.
+servers:
+  - url: https://api.widgets.example
+paths:
+  /widgets:
+    get:
+      operationId: listWidgets
+      summary: List widgets
+      description: >
+        Returns a page of widgets the caller can see. Use the limit and cursor
+        parameters to walk the collection. Never returns another tenant's data.
+      security:
+        - oauth: [widgets.read]
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Page size, 1-100.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 20
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: A page of widgets.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WidgetList"
+              example:
+                items: [{ id: "w_1", name: "Alpha" }]
+                next_cursor: null
+        "401":
+          $ref: "#/components/responses/Problem"
+        "403":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      operationId: createWidget
+      summary: Create a widget
+      description: >
+        Creates a widget in the caller's tenant. The name is required and must
+        be unique. Returns the created widget, including its id.
+      security:
+        - oauth: [widgets.write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewWidget"
+            example:
+              name: "Alpha"
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Widget"
+              example:
+                id: "w_1"
+                name: "Alpha"
+        "400":
+          $ref: "#/components/responses/Problem"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "409":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+        default:
+          $ref: "#/components/responses/Problem"
+  /widgets/{id}:
+    get:
+      operationId: getWidget
+      summary: Get a widget by id
+      description: >
+        Fetches a single widget. Returns 404 when the widget is missing or
+        belongs to another tenant.
+      security:
+        - oauth: [widgets.read]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          example: w_1
+      responses:
+        "200":
+          description: The widget.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Widget"
+              example:
+                id: "w_1"
+                name: "Alpha"
+        "401":
+          $ref: "#/components/responses/Problem"
+        "404":
+          $ref: "#/components/responses/Problem"
+        "500":
+          $ref: "#/components/responses/Problem"
+        default:
+          $ref: "#/components/responses/Problem"
+components:
+  securitySchemes:
+    oauth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.widgets.example/oauth/token
+          scopes:
+            widgets.read: Read widgets
+            widgets.write: Create and update widgets
+  schemas:
+    Widget:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+    NewWidget:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+    WidgetList:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Widget" }
+        next_cursor:
+          type: string
+          nullable: true
+    Problem:
+      type: object
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+  responses:
+    Problem:
+      description: RFC 9457 problem details.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+          example:
+            type: https://api.widgets.example/problems/not-found
+            title: Not found
+            status: 404
+            detail: No widget with that id.

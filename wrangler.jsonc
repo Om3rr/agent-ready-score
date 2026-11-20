@@ -1,0 +1,13 @@
+{
+  "name": "agent-ready-score",
+  "main": "worker/src/index.ts",
+  "compatibility_date": "2026-11-20",
+  "observability": {
+    "enabled": true,
+    "traces": { "enabled": true }
+  },
+  "assets": {
+    "directory": "worker/public",
+    "binding": "ASSETS"
+  }
+}

@@ -1,0 +1,18 @@
+openapi: 3.0.0
+info:
+  title: Mystery
+  version: "0"
+paths:
+  /do:
+    post:
+      responses:
+        "200":
+          description: ok
+  /also:
+    get:
+      parameters:
+        - name: q
+          in: query
+      responses:
+        "200":
+          description: ok
