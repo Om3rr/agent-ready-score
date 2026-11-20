@@ -16,7 +16,7 @@ describe("worker handler", () => {
     assert.match(body, /Agent-Ready Score/);
     assert.match(body, /Pro coming soon/);
     assert.doesNotMatch(body, /\$\d+/);
-    assert.equal(body.includes("employer") || LANDING_FALLBACK.includes("employer"), false);
+    assert.doesNotMatch(body + LANDING_FALLBACK, /lemonsqueezy|buy\.stripe|checkout\./i);
   });
 
   it("scores a pasted spec via POST /api/score", async () => {
