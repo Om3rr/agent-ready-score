@@ -1,0 +1,39 @@
+# Agent-Ready Score. Search and AI answer engines are welcome; the API is not for crawling.
+# A summary for language models is at https://agent-ready-score.omer20sh.workers.dev/llms.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+
+Sitemap: https://agent-ready-score.omer20sh.workers.dev/sitemap.xml

@@ -1,5 +1,5 @@
 import type { DiscoveryProbe, DiscoveryResult, FetchLike } from "./types.js";
-import { isOpenAPIDoc, originOf, parseSpec, type OpenAPIDoc } from "./openapi.js";
+import { isOpenAPIDoc, originOf, parseSpec, serverOrigin, type OpenAPIDoc } from "./openapi.js";
 
 export const DEFAULT_USER_AGENT = "agent-ready-score/0.1 (+https://github.com/Om3rr/agent-ready-score)";
 
@@ -240,4 +240,63 @@ export const AI_CRAWLER_TOKENS = [
 export function robotsMentionsAi(snippetText: string): boolean {
   const s = snippetText.toLowerCase();
   return AI_CRAWLER_TOKENS.some((t) => s.includes(t));
+}
+
+/** Hosts that serve other people's specs; their own llms.txt says nothing about the API. */
+const SHARED_HOSTS = ["github.com", "githubusercontent.com", "gitlab.com", "bitbucket.org", "githack.com", "jsdelivr.net", "unpkg.com", "amazonaws.com", "cloudfront.net", "workers.dev", "pages.dev", "vercel.app", "netlify.app", "herokuapp.com", "localhost"];
+const TWO_PART_SUFFIX = /^(co|com|org|net|ac|gov|edu)\.[a-z]{2}$/;
+
+/** Registrable domain, e.g. api.stripe.com -> stripe.com, api.example.co.uk -> example.co.uk. */
+export function rootDomain(host: string): string | null {
+  const h = host.toLowerCase().replace(/\.$/, "");
+  if (!h.includes(".") || /^[\d.]+$/.test(h) || h.includes(":")) return null;
+  const parts = h.split(".");
+  const n = TWO_PART_SUFFIX.test(parts.slice(-2).join(".")) && parts.length >= 3 ? 3 : 2;
+  return parts.slice(-n).join(".");
+}
+
+/**
+ * Where an API's docs site (and its llms.txt) most likely lives: externalDocs and contact URLs in the spec,
+ * then docs., developer(s). and the bare registrable domain of the API host. Never the probed origin itself.
+ */
+export function docsSiteCandidates(origin: string | null, doc?: OpenAPIDoc | null): string[] {
+  const out: string[] = [];
+  const add = (o: string | null) => {
+    if (!o || o === origin || out.includes(o)) return;
+    const host = new URL(o).hostname;
+    if (SHARED_HOSTS.some((s) => host === s || host.endsWith(`.${s}`))) return;
+    out.push(o);
+  };
+  const fromDoc = [doc?.externalDocs?.url, doc?.info?.contact?.url].filter((x): x is string => typeof x === "string");
+  for (const u of fromDoc) add(originOf(u));
+  const hosts = [origin, doc ? serverOrigin(doc) : null].filter((x): x is string => !!x).map((o) => new URL(o).hostname);
+  for (const host of hosts) {
+    if (SHARED_HOSTS.some((s) => host === s || host.endsWith(`.${s}`))) continue;
+    const root = rootDomain(host);
+    if (!root) continue;
+    for (const sub of ["docs.", "", "developer.", "developers."]) add(`https://${sub}${root}`);
+  }
+  return out.slice(0, 6);
+}
+
+/** Look for /llms.txt on the API's docs site. Returns the first valid probe, or null. */
+export async function probeDocsLlms(
+  candidates: string[],
+  fetchImpl: FetchLike,
+  opts: { timeoutMs: number; userAgent: string },
+): Promise<DiscoveryProbe | null> {
+  if (!candidates.length) return null;
+  const timeoutMs = Math.min(opts.timeoutMs, 6000);
+  const probes = await Promise.all(
+    candidates.map(async (base) => {
+      const target = `${base}/llms.txt`;
+      try {
+        const r = await fetchText(target, fetchImpl, { ...opts, timeoutMs, accept: "text/plain, text/markdown, */*" });
+        return { path: "/llms.txt", url: target, ok: r.ok, status: r.status, contentType: r.contentType, snippet: r.ok ? snippet(r.body, r.contentType) : "" } satisfies DiscoveryProbe;
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return probes.find((p) => p && isLlmsTxt(p)) || null;
 }

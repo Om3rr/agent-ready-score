@@ -41,7 +41,9 @@ export function checkDiscoverability(discovery: DiscoveryResult): CheckResult[] 
     openapi.fix = `Also serve the spec at ${origin}/openapi.json or ${origin}/.well-known/openapi.json so agents can find it without a bookmark.`;
   }
 
-  const llms = probeOf(probes, "/llms.txt");
+  const originLlms = probeOf(probes, "/llms.txt");
+  const docsLlms = !isLlmsTxt(originLlms) && isLlmsTxt(discovery.docsLlms ?? undefined) ? discovery.docsLlms ?? undefined : undefined;
+  const llms = docsLlms || originLlms;
   const llmsOk = isLlmsTxt(llms);
   const llmsCheck: CheckResult = skipped
     ? skip("discover.llms_txt", 25, "No origin to probe for /llms.txt", "Pass an API or docs URL, or set servers[0].url in the spec to a public origin, then publish /llms.txt.")
@@ -51,8 +53,10 @@ export function checkDiscoverability(discovery: DiscoveryResult): CheckResult[] 
         status: llmsOk ? "pass" : "fail",
         score: llmsOk ? 1 : 0,
         weight: 25,
-        title: llmsOk ? "llms.txt is published" : "No llms.txt at the origin",
-        detail: llmsOk && llms ? `${llms.url} — ${llms.snippet.slice(0, 140)}` : origin ? `Looked at ${origin}/llms.txt` : "",
+        title: llmsOk ? (docsLlms ? "llms.txt is published on the docs site" : "llms.txt is published") : "No llms.txt on the API host or docs site",
+        detail: llmsOk && llms
+          ? `${llms.url} — ${llms.snippet.slice(0, 140)}`
+          : origin ? `Looked at ${origin}/llms.txt and the likely docs sites.` : "",
         fix: llmsOk
           ? ""
           : `Publish a short curated map at ${origin}/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs.`,

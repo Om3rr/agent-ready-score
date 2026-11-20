@@ -1,0 +1,59 @@
+# Agent-Ready Score
+
+> Free, open-source 0-100 score of how ready an API is for AI agents, computed from its OpenAPI document: discoverability (llms.txt, /.well-known, robots), docs quality, predictable errors (RFC 9457), auth and identity, and MCP-wrappability (tool-list token cost). Web page, CLI, GitHub Action and README badge. Pro is coming soon; there is no paid plan today. Discovery checks the API host and, since 20 November 2026, the docs site for llms.txt.
+
+## Use it
+- [Score an API](https://agent-ready-score.omer20sh.workers.dev/): paste an OpenAPI URL or document, no sign-up.
+- [HTTP API](https://agent-ready-score.omer20sh.workers.dev/api/score?url=https://petstore3.swagger.io/api/v3/openapi.json): GET /api/score?url=<spec> returns JSON.
+- [GitHub Action](https://github.com/Om3rr/agent-ready-score#github-action) and [CLI](https://github.com/Om3rr/agent-ready-score#cli): fail CI under a score, write a Shields badge.
+- [MCP server CLI](https://github.com/Om3rr/mcp-readiness-cli): the sister tool that scans a live MCP server.
+
+## Data
+- [Leaderboard of 34 public APIs, 20 November 2026](https://agent-ready-score.omer20sh.workers.dev/scores/): scores, category breakdown and fixes per API.
+- Median Agent-Ready Score across 34 well-known public APIs: 63/100 (mean 62.3).
+- 1 of 34 scored 80 or more; 8 of 34 scored 70 or more.
+- 32 of 34 API origins serve no /llms.txt (probed on the API host, e.g. api.example.com, not the docs site).
+- 34 of 34 specs never advertise application/problem+json (RFC 9457) errors.
+- 24 of 34 API origins expose no /.well-known MCP, OAuth protected-resource or API-catalog document.
+- 17 of 34 specs leave most operations without request or response examples; 16 of 34 leave most operations without a documented 5xx response.
+- 18 of 34 specs would produce an MCP tool list over 50,000 tokens if wrapped naively (about 4 characters per token).
+- Weakest category on average: Discoverability (33/100). Strongest: Auth & identity (81/100).
+
+## Per-API scores
+- [Asana API: 80/100](https://agent-ready-score.omer20sh.workers.dev/scores/asana/)
+- [Figma REST API: 78/100](https://agent-ready-score.omer20sh.workers.dev/scores/figma/)
+- [Slack Web API: 75/100](https://agent-ready-score.omer20sh.workers.dev/scores/slack/)
+- [Linode (Akamai) API: 74/100](https://agent-ready-score.omer20sh.workers.dev/scores/linode/)
+- [Box Platform API: 72/100](https://agent-ready-score.omer20sh.workers.dev/scores/box/)
+- [Plaid API: 72/100](https://agent-ready-score.omer20sh.workers.dev/scores/plaid/)
+- [Spotify Web API: 71/100](https://agent-ready-score.omer20sh.workers.dev/scores/spotify/)
+- [Adyen Checkout API v71: 70/100](https://agent-ready-score.omer20sh.workers.dev/scores/adyen/)
+- [Render Public API: 69/100](https://agent-ready-score.omer20sh.workers.dev/scores/render/)
+- [Twilio SendGrid Mail v3: 68/100](https://agent-ready-score.omer20sh.workers.dev/scores/sendgrid/)
+- [Neon API v2: 68/100](https://agent-ready-score.omer20sh.workers.dev/scores/neon/)
+- [DigitalOcean API: 66/100](https://agent-ready-score.omer20sh.workers.dev/scores/digitalocean/)
+- [Intercom API 2.11: 66/100](https://agent-ready-score.omer20sh.workers.dev/scores/intercom/)
+- [Hetzner Cloud API: 66/100](https://agent-ready-score.omer20sh.workers.dev/scores/hetzner/)
+- [Stripe API: 65/100](https://agent-ready-score.omer20sh.workers.dev/scores/stripe/)
+- [LaunchDarkly REST API: 65/100](https://agent-ready-score.omer20sh.workers.dev/scores/launchdarkly/)
+- [PagerDuty REST API: 63/100](https://agent-ready-score.omer20sh.workers.dev/scores/pagerduty/)
+- [Sentry API: 63/100](https://agent-ready-score.omer20sh.workers.dev/scores/sentry/)
+- [Netlify API: 63/100](https://agent-ready-score.omer20sh.workers.dev/scores/netlify/)
+- [Mailchimp Marketing API: 63/100](https://agent-ready-score.omer20sh.workers.dev/scores/mailchimp/)
+- [Jira Cloud Platform REST v3: 62/100](https://agent-ready-score.omer20sh.workers.dev/scores/jira/)
+- [Discord HTTP API: 61/100](https://agent-ready-score.omer20sh.workers.dev/scores/discord/)
+- [Cloudflare API: 60/100](https://agent-ready-score.omer20sh.workers.dev/scores/cloudflare/)
+- [OpenAI API: 59/100](https://agent-ready-score.omer20sh.workers.dev/scores/openai/)
+- [Fly.io Machines API: 59/100](https://agent-ready-score.omer20sh.workers.dev/scores/flyio/)
+- [Clerk Backend API: 57/100](https://agent-ready-score.omer20sh.workers.dev/scores/clerk/)
+- [Vercel REST API: 56/100](https://agent-ready-score.omer20sh.workers.dev/scores/vercel/)
+- [Xero Accounting API: 55/100](https://agent-ready-score.omer20sh.workers.dev/scores/xero/)
+- [Swagger Petstore 3: 53/100](https://agent-ready-score.omer20sh.workers.dev/scores/petstore/)
+- [Mistral AI API: 52/100](https://agent-ready-score.omer20sh.workers.dev/scores/mistral/)
+- [Twilio API (2010): 47/100](https://agent-ready-score.omer20sh.workers.dev/scores/twilio/)
+- [Resend API: 45/100](https://agent-ready-score.omer20sh.workers.dev/scores/resend/)
+- [Kubernetes API: 38/100](https://agent-ready-score.omer20sh.workers.dev/scores/kubernetes/)
+- [GitHub REST API: 36/100](https://agent-ready-score.omer20sh.workers.dev/scores/github/)
+
+## Optional
+- [Methodology and source (MIT)](https://github.com/Om3rr/agent-ready-score)

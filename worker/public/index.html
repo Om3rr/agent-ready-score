@@ -3,161 +3,335 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent-Ready Score — is your API ready for agents?</title>
-  <meta name="description" content="Paste an OpenAPI spec or an API URL and get a 0-100 score: discoverability, docs, predictable errors, auth, and MCP-wrappability. Free to use. Pro coming soon.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%233fb950'/></svg>">
+  <title>Agent-Ready Score — is your API ready for AI agents?</title>
+  <meta name="description" content="A free, open-source 0–100 score for your OpenAPI spec: discoverability (llms.txt, well-known), docs, RFC 9457 errors, auth scopes, and what your API costs in tokens as MCP tools. No sign-up.">
+  <link rel="canonical" href="https://agent-ready-score.omer20sh.workers.dev/">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="alternate" type="text/plain" href="https://agent-ready-score.omer20sh.workers.dev/llms.txt" title="llms.txt">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://agent-ready-score.omer20sh.workers.dev/">
+  <meta property="og:title" content="Is your API ready for AI agents?">
+  <meta property="og:description" content="Free, open-source 0–100 Agent-Ready Score for an OpenAPI spec, with fixes, a README badge and a GitHub Action.">
+  <meta name="theme-color" content="#0e1116">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"Agent-Ready Score","applicationCategory":"DeveloperApplication","operatingSystem":"Web, GitHub Actions, Node.js","url":"https://agent-ready-score.omer20sh.workers.dev/","description":"Open-source 0-100 score of how ready an API is for AI agents, computed from its OpenAPI document.","isAccessibleForFree":true,"license":"https://opensource.org/licenses/MIT","codeRepository":"https://github.com/Om3rr/agent-ready-score"},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What does the Agent-Ready Score measure?","acceptedAnswer":{"@type":"Answer","text":"How easily an AI agent can find, understand, call and recover from errors on your API, computed from its OpenAPI document and a few well-known paths. Five categories weigh 20% each: discoverability, docs quality, predictable errors, auth and identity, and MCP-wrappability."}},{"@type":"Question","name":"How is this different from Cloudflare's or Postman's agent scores?","acceptedAnswer":{"@type":"Answer","text":"Cloudflare's Is It Agent Ready checks a website, and Postman's API Agent Score uses its own methodology across its network. Agent-Ready Score is open source, scores the OpenAPI document itself, runs in your CI, and reports what the API would cost in tokens as an MCP tool list. The numbers are not comparable one to one."}},{"@type":"Question","name":"Where do you look for llms.txt?","acceptedAnswer":{"@type":"Answer","text":"On the API host first, then on the likely docs site: links in the spec (externalDocs, contact), docs.<domain>, the bare domain and developer(s).<domain>. For example, Stripe publishes llms.txt on docs.stripe.com."}},{"@type":"Question","name":"Do you store my spec?","acceptedAnswer":{"@type":"Answer","text":"No. The spec is scored in memory and not saved. We fetch only the URL you give us and a few well-known paths on the API and docs sites."}},{"@type":"Question","name":"Is it free?","acceptedAnswer":{"@type":"Answer","text":"Yes. The web scorer, the badge, the CLI and the GitHub Action are free and open source (MIT), with no sign-up. Pro is coming soon and has no price yet."}}]}]}</script>
   <style>
-    :root { --bg:#0e1116; --card:#161b22; --ink:#e6edf3; --muted:#8b949e; --line:#30363d; --green:#3fb950; --yellow:#d29922; --red:#e5534b; --accent:#58a6ff; }
+    :root { --bg:#0e1116; --card:#161b22; --ink:#e6edf3; --muted:#9da7b3; --line:#30363d; --green:#3fb950; --yellow:#d29922; --red:#f47067; --accent:#58a6ff; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:var(--bg); color:var(--ink); line-height:1.5; }
-    header, main, footer { max-width: 860px; margin: 0 auto; padding: 0 20px; }
-    header { padding-top: 48px; padding-bottom: 12px; }
-    h1 { font-size: 2rem; margin: 0 0 8px; letter-spacing: -0.03em; }
-    .lede { color: var(--muted); font-size: 1.1rem; margin: 0 0 28px; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
-    label { display:block; font-weight: 600; margin-bottom: 6px; }
-    input[type=url], textarea { width:100%; background:#0d1117; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font: inherit; }
-    textarea { min-height: 180px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
-    .row { display:flex; gap:12px; align-items:center; margin-top: 12px; flex-wrap: wrap; }
-    button { background: var(--accent); color:#04111f; border:0; border-radius:8px; padding:10px 18px; font-weight:700; cursor:pointer; }
-    button:disabled { opacity: .55; cursor: wait; }
-    .hint { color: var(--muted); font-size: 0.9rem; }
-    #result { margin-top: 24px; display:none; }
-    .score { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.04em; margin: 0; }
-    .score.green { color: var(--green); } .score.yellow { color: var(--yellow); } .score.red { color: var(--red); }
-    .cats { list-style:none; padding:0; margin: 16px 0; }
-    .cats li { display:flex; justify-content:space-between; gap:12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
-    .bar { width: 140px; height: 8px; background:#21262d; border-radius: 99px; overflow:hidden; align-self:center; }
-    .bar > span { display:block; height:100%; background: var(--accent); }
-    h2 { font-size: 1.1rem; margin: 24px 0 8px; }
-    .fix { padding: 10px 0; border-bottom: 1px solid var(--line); }
-    .fix .lvl { font-size: 11px; font-weight: 700; text-transform: uppercase; }
-    .fix .lvl.fail { color: var(--red); } .fix .lvl.warn { color: var(--yellow); }
-    .err { color: var(--red); margin-top: 12px; }
-    footer { padding: 48px 20px; color: var(--muted); font-size: 0.9rem; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin:0; overflow-wrap:break-word; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background:var(--bg); color:var(--ink); line-height:1.55; }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
     a { color: var(--accent); }
-    .soon { display:inline-block; margin-top: 8px; border:1px solid var(--line); border-radius: 99px; padding: 2px 10px; font-size: 12px; color: var(--muted); }
+    nav { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:18px 0; }
+    nav .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; color:var(--ink); text-decoration:none; white-space:nowrap; }
+    nav .brand img { width:26px; height:26px; }
+    nav .links { display:flex; gap:18px; align-items:center; }
+    nav .links a { color:var(--muted); text-decoration:none; white-space:nowrap; font-size:15px; }
+    nav .links a:hover { color:var(--ink); }
+    nav .links a.cta { color:#04111f; background:var(--accent); padding:7px 12px; border-radius:8px; font-weight:700; }
+    .hero { display:grid; grid-template-columns: minmax(0,1.05fr) minmax(0,.95fr); gap:28px; align-items:start; padding: 26px 0 8px; }
+    .hero > * { min-width:0; }
+    h1 { font-size: 2.5rem; line-height:1.1; margin: 0 0 12px; letter-spacing: -0.03em; }
+    .lede { color: var(--muted); font-size: 1.1rem; margin: 0 0 16px; }
+    .proof { font-size: .95rem; color: var(--muted); margin: 0; }
+    .proof b { color: var(--ink); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; min-width:0; }
+    .tabs { display:flex; gap:6px; margin-bottom:12px; }
+    .tab { background:transparent; color:var(--muted); border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-weight:600; font-size:14px; cursor:pointer; }
+    .tab[aria-selected=true] { color:var(--ink); border-color:var(--accent); background:#0d1a2b; }
+    label.l { display:block; font-weight: 600; margin-bottom: 6px; }
+    input[type=url], textarea { width:100%; background:#0d1117; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:11px 12px; font: inherit; font-size:16px; }
+    textarea { min-height: 150px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+    .row { display:flex; gap:12px; align-items:center; margin-top: 12px; flex-wrap: wrap; }
+    button, .btn { background: var(--accent); color:#04111f; border:1px solid transparent; border-radius:8px; padding:10px 18px; font-weight:700; cursor:pointer; font-size:15px; text-decoration:none; display:inline-block; line-height:1.2; text-align:center; }
+    .ghost { background:transparent; color:var(--ink); border-color:#48525e; }
+    .sm { padding:7px 12px; font-size:14px; }
+    button:disabled { background:#2d4a6d; color:#e6edf3; cursor: wait; }
+    .chips { margin-top:10px; font-size:.9rem; color:var(--muted); }
+    .chips button { background:transparent; color:var(--accent); border:1px solid var(--line); border-radius:99px; padding:3px 10px; font-weight:600; font-size:13px; margin:2px 2px; }
+    .hint { color: var(--muted); font-size: 0.9rem; }
+    #result { margin-top: 20px; display:none; }
+    .score { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.04em; margin: 0; line-height:1.05; }
+    .score.green { color: var(--green); } .score.yellow { color: var(--yellow); } .score.red { color: var(--red); }
+    .cats { list-style:none; padding:0; margin: 14px 0; }
+    .cats li { display:flex; justify-content:space-between; gap:12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .bar { width: 140px; max-width:35vw; height: 8px; background:#21262d; border-radius: 99px; overflow:hidden; align-self:center; }
+    .bar > span { display:block; height:100%; background: var(--accent); }
+    h2 { font-size: 1.45rem; margin: 0 0 10px; }
+    h3 { font-size: 1.05rem; margin: 18px 0 6px; }
+    section { padding: 34px 0 6px; }
+    .fix { padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .fix .lvl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing:.04em; }
+    .fix .lvl.fail { color: var(--red); } .fix .lvl.warn { color: var(--yellow); } .fix .lvl.info, .fix .lvl.skip, .fix .lvl.pass { color: var(--muted); }
+    .fix .chk { font-size: 12px; color: var(--muted); margin-left: 6px; }
+    .err { color: var(--red); margin-top: 12px; }
+    pre { margin:0; background:#0d1117; border:1px solid var(--line); border-radius:8px; padding:12px; overflow-x:auto; white-space:pre-wrap; overflow-wrap:anywhere; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    code { font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap:anywhere; }
+    .codebox { position:relative; min-width:0; }
+    .codebox pre { padding-right: 110px; }
+    .codebox .copy { position:absolute; top:8px; right:8px; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .grid { display:grid; gap:14px; }
+    .grid > * { min-width:0; }
+    .g5 { grid-template-columns: repeat(5, minmax(0,1fr)); }
+    .g2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .g5 .card h3 { margin-top:0; }
+    .tag { display:inline-block; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#04111f; background:#c9d1d9; border-radius:99px; padding:2px 10px; }
+    .sample-head { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+    footer { border-top:1px solid var(--line); margin-top:40px; padding: 24px 0 48px; color: var(--muted); font-size: 0.9rem; }
+    footer a { color: var(--muted); }
     .hp { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
-    #waitlist { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 16px 0 8px; }
-    #waitlist input[type=email] { flex:1; min-width:220px; background:#0d1117; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font: inherit; }
-    #waitlist button { background: transparent; color: var(--ink); border:1px solid var(--line); }
+    #waitlist { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 14px 0 8px; }
+    #waitlist input[type=email] { flex:1; min-width:0; width:220px; background:#0d1117; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font: inherit; font-size:16px; }
+    .faq h3:first-child { margin-top:0; }
+    @media (max-width: 900px) { .hero { grid-template-columns: minmax(0,1fr); gap:18px; } .g5 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 700px) {
+      nav { flex-direction:column; align-items:flex-start; gap:10px; padding:14px 0; }
+      nav .links { width:100%; flex-wrap:wrap; column-gap:16px; row-gap:6px; }
+      nav .links::-webkit-scrollbar { display:none; }
+      h1 { font-size: 1.85rem; } .lede { font-size:1rem; }
+      .hero { padding-top: 10px; }
+      .g5, .g2 { grid-template-columns: minmax(0,1fr); }
+      .codebox pre { padding-right:12px; padding-top:44px; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Agent-Ready Score</h1>
-    <p class="lede">Paste an OpenAPI spec or an API / docs URL. Get a 0–100 score, a category breakdown, and a concrete fix for every failed check.</p>
-    <span class="soon">Free to use · Pro coming soon</span>
-  </header>
-  <main>
-    <form class="card" id="form">
-      <label for="url">Spec or docs URL</label>
-      <input id="url" type="url" placeholder="https://example.com/openapi.json" autocomplete="off">
-      <div style="height:14px"></div>
-      <label for="spec">Or paste the OpenAPI document</label>
-      <textarea id="spec" placeholder="openapi: 3.1.0&#10;info:&#10;  title: …"></textarea>
+<div class="wrap">
+  <nav aria-label="Main"><a class="brand" href="/"><img src="/favicon.svg" alt="" width="26" height="26">Agent-Ready Score</a><div class="links"><a href="/scores/">API leaderboard</a><a href="#ci">GitHub Action</a><a href="https://github.com/Om3rr/agent-ready-score#cli">CLI</a><a href="https://github.com/Om3rr/agent-ready-score">Source</a><a class="cta" href="#score">Score your API</a></div></nav>
+
+  <header class="hero" id="score">
+    <div>
+      <h1>Is your API ready for AI agents?</h1>
+      <p class="lede">A free, open-source 0–100 score for your OpenAPI spec: discoverability, docs, RFC 9457 errors, auth scopes, and what your API costs in tokens as MCP tools.</p>
+      <p class="proof">Median of 34 popular public APIs: <b>63/100</b>. Only 1 scores 80+. <a href="/scores/">See the leaderboard</a>.</p>
+    </div>
+    <form class="card" id="form" aria-labelledby="score-h">
+      <h2 id="score-h" class="hp">Score your API</h2>
+      <div class="tabs" role="tablist"><button type="button" class="tab" role="tab" id="tab-url" aria-selected="true" aria-controls="pane-url">URL</button><button type="button" class="tab" role="tab" id="tab-paste" aria-selected="false" aria-controls="pane-paste">Paste spec</button></div>
+      <div id="pane-url" role="tabpanel"><label class="l" for="url">OpenAPI spec or docs URL</label>
+      <input id="url" type="url" placeholder="https://example.com/openapi.json" autocomplete="off" inputmode="url"></div>
+      <div id="pane-paste" role="tabpanel" hidden><label class="l" for="spec">Paste the OpenAPI document (JSON or YAML)</label>
+      <textarea id="spec" placeholder="openapi: 3.1.0&#10;info:&#10;  title: …"></textarea></div>
       <div class="row">
         <button type="submit" id="go">Score it</button>
-        <span class="hint">No sign-up. We fetch only the URL you give us and a few well-known paths on that origin.</span>
+        <span class="hint">No sign-up. Nothing is stored.</span>
       </div>
+      <div class="chips">Try: <button type="button" data-try="https://petstore3.swagger.io/api/v3/openapi.json">Petstore</button><button type="button" data-try="https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json">Stripe</button><button type="button" data-try="https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json">GitHub</button></div>
       <p class="err" id="err" hidden></p>
     </form>
-    <section id="result" class="card" style="margin-top:20px"></section>
-  </main>
-  <footer>
-    <p>Checks: discoverability (llms.txt, OpenAPI, well-known, robots), docs quality, predictable errors, auth &amp; identity, and MCP-wrappability. Use the CLI or GitHub Action in CI, and embed a README badge.</p>
-    <p>Pro coming soon. This free tool does not include history, teams, or paid checkout.</p>
-    <form id="waitlist">
-      <input type="email" name="email" required placeholder="you@company.com" autocomplete="email">
-      <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <button type="submit">Join the Pro waitlist</button>
-    </form>
-    <p class="hint">We'll email you once when Pro launches. No spam, unsubscribe anytime.</p>
-    <p id="waitlist-msg" class="hint" hidden></p>
-  </footer>
+  </header>
+  <section id="result" class="card" aria-live="polite"></section>
+
+  <section id="sample" aria-labelledby="sample-h">
+    <div class="card">
+      <div class="sample-head"><h2 id="sample-h" style="margin:0">Sample result: Stripe API</h2><span class="tag">Recorded 20 Nov 2026</span></div>
+      <p class="score red" style="margin-top:10px">65<span style="font-size:1.2rem;color:var(--muted)">/100</span></p>
+      <ul class="cats">
+        <li><span>Discoverability</span><span style="display:flex;gap:10px;align-items:center"><span class="bar"><span style="width:31%"></span></span><strong>31</strong></span></li>
+        <li><span>Docs quality</span><span style="display:flex;gap:10px;align-items:center"><span class="bar"><span style="width:70%"></span></span><strong>70</strong></span></li>
+        <li><span>Predictable errors</span><span style="display:flex;gap:10px;align-items:center"><span class="bar"><span style="width:80%"></span></span><strong>80</strong></span></li>
+        <li><span>Auth &amp; identity</span><span style="display:flex;gap:10px;align-items:center"><span class="bar"><span style="width:76%"></span></span><strong>76</strong></span></li>
+        <li><span>MCP-wrappability</span><span style="display:flex;gap:10px;align-items:center"><span class="bar"><span style="width:70%"></span></span><strong>70</strong></span></li>
+      </ul>
+      <p class="hint">Generated MCP tool list: 612 operations ≈ 458,437 tokens</p>
+      <div class="fix"><span class="lvl fail">Fail</span><span class="chk">Examples</span><br><strong>Many operations have no examples</strong></div>
+      <div class="fix"><span class="lvl fail">Fail</span><span class="chk">RFC 9457 errors</span><br><strong>Errors are not advertised as application/problem+json</strong></div>
+      <div class="fix"><span class="lvl fail">Fail</span><span class="chk">MCP tool-list size</span><br><strong>Generated tool list is expensive (458,437 tokens, 612 operations)</strong></div>
+      <p class="hint" style="margin-top:12px">This snapshot probed api.stripe.com only. The live scorer now also finds Stripe's llms.txt on docs.stripe.com, so a re-score comes out higher. <a href="/scores/stripe/">Full Stripe page</a> · <a href="/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fstripe%2Fopenapi%2Fmaster%2Fopenapi%2Fspec3.json#score">Re-score Stripe live</a></p>
+    </div>
+  </section>
+
+  <section id="checks" aria-labelledby="checks-h">
+    <h2 id="checks-h">What we check</h2>
+    <div class="grid g5">
+      <div class="card"><h3>Discoverability</h3><p class="hint">llms.txt on the API host or docs site, /.well-known discovery, robots.txt AI policy, a reachable spec.</p></div>
+      <div class="card"><h3>Docs quality</h3><p class="hint">Summaries, descriptions, request and response examples, API info.</p></div>
+      <div class="card"><h3>Predictable errors</h3><p class="hint">Documented 4xx and 5xx, one shared error schema, RFC 9457 problem+json.</p></div>
+      <div class="card"><h3>Auth &amp; identity</h3><p class="hint">Security schemes, auth applied to operations, OAuth flows and scopes.</p></div>
+      <div class="card"><h3>MCP-wrappability</h3><p class="hint">Unique operationIds, parameter schemas, and the token cost of the generated tool list.</p></div>
+    </div>
+  </section>
+
+  <section id="ci" aria-labelledby="ci-h">
+    <h2 id="ci-h">Gate the score in CI</h2>
+    <div class="grid g2">
+      <div class="codebox"><pre id="action-yaml">- uses: Om3rr/agent-ready-score@v0.1.0
+  with:
+    spec: openapi.yaml
+    fail-under: 70
+    badge-path: agent-ready-badge.json</pre><button type="button" class="ghost sm copy" data-copy="action-yaml" data-event="action_install_click">Copy</button></div>
+      <div>
+        <p class="hint" style="margin-top:0">Fail the PR when the score drops under your threshold, and write a Shields badge file. Runs in your own runner. Prefer the terminal? Use the CLI.</p>
+        <div class="actions"><a class="btn" data-event="action_install_click" href="https://github.com/Om3rr/agent-ready-score?utm_source=agent-ready-score&amp;utm_medium=landing&amp;utm_campaign=action#github-action">Add the GitHub Action</a><a class="btn ghost" href="https://github.com/Om3rr/agent-ready-score#cli">CLI</a><a class="btn ghost" href="https://github.com/Om3rr/agent-ready-score">Source</a></div>
+        <p class="hint">Building an MCP server? <a href="https://github.com/Om3rr/mcp-readiness-cli">mcp-readiness-cli</a> scans a live MCP server the same way.</p>
+      </div>
+    </div>
+    <h3>README badge</h3>
+    <p class="hint">Live score for a public spec URL. Swap in your own.</p>
+    <p><img src="/badge?score=82" alt="agent-ready 82" height="20" width="114"></p>
+    <div class="codebox"><pre id="badge-sample">[![agent-ready](https://agent-ready-score.omer20sh.workers.dev/badge?url=https%3A%2F%2Fpetstore3.swagger.io%2Fapi%2Fv3%2Fopenapi.json)](https://agent-ready-score.omer20sh.workers.dev/?url=https%3A%2F%2Fpetstore3.swagger.io%2Fapi%2Fv3%2Fopenapi.json)</pre><button type="button" class="ghost sm copy" data-copy="badge-sample" data-event="badge_copied">Copy badge</button></div>
+  </section>
+
+  <section id="pro" aria-labelledby="pro-h">
+    <div class="card">
+      <span class="tag">Coming soon</span>
+      <h2 id="pro-h" style="margin-top:8px">Pro</h2>
+      <p class="hint">Score history and drift alerts, private specs, a fix-by-fix report, and team badges. No price yet, and nothing to buy today.</p>
+      <button type="button" class="ghost" data-event="price_click" data-tier="pro" data-goto="waitlist">Get notified</button>
+      <form id="waitlist">
+        <label class="hp" for="wl-email">Email</label>
+        <input id="wl-email" type="email" name="email" required placeholder="you@company.com" autocomplete="email">
+        <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit">Join the Pro waitlist</button>
+      </form>
+      <p class="hint">We store your email only to tell you once when Pro opens. No marketing list, no sharing, delete on request.</p>
+      <p id="waitlist-msg" class="hint" hidden></p>
+    </div>
+  </section>
+
+  <section id="faq" class="faq" aria-labelledby="faq-h">
+    <h2 id="faq-h">FAQ</h2>
+    <div class="card">
+      <h3>What does the Agent-Ready Score measure?</h3><p class="hint">How easily an AI agent can find, understand, call and recover from errors on your API, computed from its OpenAPI document and a few well-known paths. Five categories weigh 20% each: discoverability, docs quality, predictable errors, auth and identity, and MCP-wrappability.</p>
+      <h3>How is this different from Cloudflare's or Postman's agent scores?</h3><p class="hint">Cloudflare's Is It Agent Ready checks a website, and Postman's API Agent Score uses its own methodology across its network. Agent-Ready Score is open source, scores the OpenAPI document itself, runs in your CI, and reports what the API would cost in tokens as an MCP tool list. The numbers are not comparable one to one.</p>
+      <h3>Where do you look for llms.txt?</h3><p class="hint">On the API host first, then on the likely docs site: links in the spec (externalDocs, contact), docs.&lt;domain&gt;, the bare domain and developer(s).&lt;domain&gt;. For example, Stripe publishes llms.txt on docs.stripe.com.</p>
+      <h3>Do you store my spec?</h3><p class="hint">No. The spec is scored in memory and not saved. We fetch only the URL you give us and a few well-known paths on the API and docs sites.</p>
+      <h3>Is it free?</h3><p class="hint">Yes. The web scorer, the badge, the CLI and the GitHub Action are free and open source (MIT), with no sign-up. Pro is coming soon and has no price yet.</p>
+    </div>
+  </section>
+
+  <footer>Agent-Ready Score · <a href="/scores/">API leaderboard</a> · <a href="https://github.com/Om3rr/agent-ready-score">Source (MIT)</a> · <a href="https://github.com/Om3rr/agent-ready-score#github-action">GitHub Action</a> · <a href="https://github.com/Om3rr/mcp-readiness-cli">MCP server CLI</a> · <a href="/llms.txt">llms.txt</a> · <a href="/stats.html">Public traffic stats</a> · Not affiliated with any API listed.</footer>
+</div>
   <script>
-    const ping = (event, extra={}) => {
-      try {
-        const body = JSON.stringify({ event, path: location.pathname, ref: document.referrer, ...extra });
-        const blob = new Blob([body], { type: 'application/json' });
-        if (navigator.sendBeacon) navigator.sendBeacon('/api/event', blob);
-        else fetch('/api/event', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true }).catch(()=>{});
-      } catch {}
-    };
-    try {
-      ping('landing_view');
-      document.addEventListener('click', (ev) => {
-        const a = ev.target && ev.target.closest && ev.target.closest('a');
-        if (!a) return;
-        const href = a.getAttribute('href') || '';
-        if (/github.com\/Om3rr\/agent-ready-score|marketplace\/actions/i.test(href)) ping('action_install_click');
-      });
-    } catch {}
     const form = document.getElementById('form');
     const result = document.getElementById('result');
     const err = document.getElementById('err');
     const go = document.getElementById('go');
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    const ORIGIN = (typeof location !== 'undefined' && location.origin) || 'https://agent-ready-score.omer20sh.workers.dev';
+    let mode = 'url';
+    let lastUrl = '';
+    // Everything from the scored spec (title, check text, fixes, ids) is untrusted: escape before innerHTML.
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    }
+    function num(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
+    function tone(n) { return n >= 90 ? 'green' : n >= 70 ? 'yellow' : 'red'; }
+    function isHttp(u) { return /^https?:\/\/[^\s]+$/i.test(String(u || '')); }
+    const STATUS = { pass: 'pass', warn: 'warn', fail: 'fail', skip: 'skip', info: 'info' };
+    const STATUS_LABEL = { pass: 'Pass', warn: 'Warn', fail: 'Fail', skip: 'Skipped', info: 'Note' };
+    const LABELS = {
+      'discover.openapi': 'OpenAPI document', 'discover.llms_txt': 'llms.txt', 'discover.well_known': 'Well-known discovery', 'discover.robots': 'robots.txt AI policy',
+      'docs.summaries': 'Operation summaries', 'docs.descriptions': 'Descriptions', 'docs.examples': 'Examples', 'docs.info': 'API info',
+      'errors.4xx': '4xx responses', 'errors.5xx': '5xx responses', 'errors.problem_json': 'RFC 9457 errors', 'errors.shared': 'Shared error schema',
+      'auth.schemes': 'Security schemes', 'auth.applied': 'Auth on operations', 'auth.oauth': 'OAuth flows', 'auth.scopes': 'OAuth scopes',
+      'mcp.operation_ids': 'Unique operationIds', 'mcp.param_schemas': 'Parameter schemas', 'mcp.tool_list_tokens': 'MCP tool-list size'
+    };
+    function checkLabel(id) { return Object.prototype.hasOwnProperty.call(LABELS, id) ? LABELS[id] : 'Check'; }
+    function setMode(m) {
+      mode = m;
+      const tu = document.getElementById('tab-url'), tp = document.getElementById('tab-paste');
+      if (tu.setAttribute) { tu.setAttribute('aria-selected', String(m === 'url')); tp.setAttribute('aria-selected', String(m === 'paste')); }
+      document.getElementById('pane-url').hidden = m !== 'url';
+      document.getElementById('pane-paste').hidden = m !== 'paste';
+    }
+    document.getElementById('tab-url').addEventListener('click', () => setMode('url'));
+    document.getElementById('tab-paste').addEventListener('click', () => setMode('paste'));
+    async function scoreIt(body) {
       err.hidden = true;
       result.style.display = 'none';
-      const url = document.getElementById('url').value.trim();
-      const spec = document.getElementById('spec').value.trim();
-      if (!url && !spec) { err.textContent = 'Paste a spec or enter a URL.'; err.hidden = false; return; }
       go.disabled = true; go.textContent = 'Scoring…';
       try {
-        const body = spec ? { spec } : { url };
         const res = await fetch('/api/score', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
         const data = await res.json();
         if (!data.ok) throw new Error(data.error || 'Score failed');
+        lastUrl = body.url || '';
         render(data);
+        if (result.scrollIntoView) result.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch (e) {
         err.textContent = e.message || String(e);
         err.hidden = false;
       } finally {
         go.disabled = false; go.textContent = 'Score it';
       }
-    });
-    function tone(n) { return n >= 90 ? 'green' : n >= 70 ? 'yellow' : 'red'; }
-    // Everything from the scored spec (title, check text, fixes, ids) is untrusted: escape before innerHTML.
-    function esc(v) {
-      return String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
     }
-    function num(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
-    const STATUS = { pass: 'pass', warn: 'warn', fail: 'fail', skip: 'skip', info: 'info' };
+    function scoreUrl(u) {
+      const url = String(u || '').trim();
+      if (!isHttp(url)) { err.textContent = 'Enter an absolute http(s) URL.'; err.hidden = false; return; }
+      document.getElementById('url').value = url;
+      setMode('url');
+      return scoreIt({ url });
+    }
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (mode === 'paste') {
+        const spec = document.getElementById('spec').value.trim();
+        if (!spec) { err.textContent = 'Paste an OpenAPI document.'; err.hidden = false; return; }
+        scoreIt({ spec });
+      } else {
+        const url = document.getElementById('url').value.trim();
+        if (!url) { err.textContent = 'Enter a spec or docs URL.'; err.hidden = false; return; }
+        scoreUrl(url);
+      }
+    });
     function render(r) {
       const cats = (r.categories || []).map(c => {
         const n = c.score == null ? 0 : Math.max(0, Math.min(100, num(c.score)));
         const label = c.score == null ? 'n/a' : Math.round(num(c.score));
         return `<li><span>${esc(c.label)}</span><span style="display:flex;gap:10px;align-items:center"><span class="bar"><span style="width:${n}%"></span></span><strong>${esc(label)}</strong></span></li>`;
       }).join('');
-      const fixes = (r.findings || []).filter(f => f.fix).map(f => {
+      const findings = (r.findings || []).filter(f => f.fix);
+      findings.sort((a, b) => (a.status === 'fail' ? 0 : 1) - (b.status === 'fail' ? 0 : 1));
+      const fixes = findings.map(f => {
         const st = STATUS[f.status] || 'info';
-        return `<div class="fix"><div class="lvl ${st}">${esc(f.status)} · ${esc(f.id)}</div><strong>${esc(f.title)}</strong><div class="hint">${esc(f.fix)}</div></div>`;
+        return `<div class="fix"><span class="lvl ${st}">${esc(STATUS_LABEL[st])}</span><span class="chk">${esc(checkLabel(f.id))}</span><br><strong>${esc(f.title)}</strong><div class="hint">${esc(f.fix)}</div></div>`;
       }).join('') || '<p class="hint">No outstanding fixes. Nice work.</p>';
       const score = Math.round(num(r.score));
       const tl = r.toolList || {};
+      const live = isHttp(lastUrl);
+      const badgeSrc = live ? `${ORIGIN}/badge?url=${encodeURIComponent(lastUrl)}` : `${ORIGIN}/badge?score=${score}`;
+      const link = live ? `${ORIGIN}/?url=${encodeURIComponent(lastUrl)}` : ORIGIN + '/';
+      const md = `[![agent-ready](${badgeSrc})](${link})`;
       result.innerHTML = `
         <p class="hint">${esc(r.title)} · ${esc(r.specVersion)}</p>
         <p class="score ${tone(score)}">${score}<span style="font-size:1.2rem;color:var(--muted)">/100</span></p>
         <ul class="cats">${cats}</ul>
-        <p class="hint">Generated tool list: ${num(tl.operations)} operations ≈ ${num(tl.tokens)} tokens</p>
-        <h2>Fixes</h2>
+        <p class="hint">Generated MCP tool list: ${num(tl.operations)} operations ≈ ${num(tl.tokens).toLocaleString('en-US')} tokens</p>
+        <h3>Fixes</h3>
         ${fixes}
-        <p class="hint" style="margin-top:16px">Badge: <code>https://this-host/badge?url=YOUR_SPEC_URL</code> · Shields endpoint: add <code>&amp;format=json</code></p>
+        <h3>Add the badge</h3>
+        <p id="result-badge-img"></p>
+        <div class="codebox"><pre id="result-badge">${esc(md)}</pre><button type="button" class="ghost sm copy" data-copy="result-badge" data-event="badge_copied">Copy badge</button></div>
+        <p class="hint">${live ? 'The badge re-scores this URL, cached for 5 minutes. Shields endpoint: add <code>&amp;format=json</code>.' : 'A pasted spec gets a static badge. Score a public URL for a live one.'}</p>
+        <div class="actions"><a class="btn" data-event="action_install_click" href="https://github.com/Om3rr/agent-ready-score?utm_source=agent-ready-score&amp;utm_medium=result&amp;utm_campaign=action#github-action">Gate this score in CI</a></div>
       `;
       result.style.display = 'block';
+      // Badge preview built with DOM APIs (src set as a property, never parsed as HTML).
+      try {
+        const holder = document.getElementById('result-badge-img');
+        const img = document.createElement('img');
+        img.src = badgeSrc; img.alt = `agent-ready ${score}`; img.height = 20;
+        holder.appendChild(img);
+      } catch (e) {}
     }
     const wl = document.getElementById('waitlist');
     const wlMsg = document.getElementById('waitlist-msg');
     if (wl) wl.addEventListener('submit', async (e) => {
       e.preventDefault();
       const fd = new FormData(wl);
-      const res = await fetch('/api/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: fd.get('email'), website: fd.get('website') }) });
-      const data = await res.json().catch(() => ({}));
+      const res = await fetch('/api/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: fd.get('email'), website: fd.get('website') }) }).catch(() => null);
+      const data = res ? await res.json().catch(() => ({})) : {};
       wlMsg.hidden = false;
       wlMsg.textContent = data.ok ? (data.already ? 'You are already on the list.' : 'You are on the Pro waitlist.') : (data.error || 'Could not save that.');
     });
   </script>
+  <script>
+    document.querySelectorAll('[data-try]').forEach((b) => b.addEventListener('click', () => scoreUrl(b.getAttribute('data-try'))));
+    // ?url= auto-run: the value only ever reaches the page through scoreUrl() -> render(), which escapes everything.
+    try {
+      const auto = new URLSearchParams(location.search).get('url');
+      if (auto && isHttp(auto)) scoreUrl(auto);
+    } catch (e) {}
+  </script>
+  <script src="/t.js" defer></script>
 </body>
 </html>
