@@ -1,0 +1,74 @@
+name: 'Agent-Ready Score'
+description: 'Score how ready an OpenAPI-described API is for AI agents: discoverability, docs, errors, auth, and MCP-wrappability. Fails the job below a threshold and writes a Shields badge.'
+author: 'Omer Shacham'
+branding:
+  icon: 'shield'
+  color: 'green'
+inputs:
+  spec:
+    description: 'Path to an OpenAPI/Swagger file in the repo, or an http(s) URL of a spec or API/docs site. Alias: url.'
+    required: false
+    default: ''
+  url:
+    description: 'Alias for spec, when the input is a URL.'
+    required: false
+    default: ''
+  fail-under:
+    description: 'Fail the job if the score is below this (0-100). Set to 0 to never fail.'
+    required: false
+    default: '0'
+  skip-discovery:
+    description: 'If true, do not probe the origin for llms.txt, well-known, or robots.txt.'
+    required: false
+    default: 'false'
+  origin:
+    description: 'Origin to probe for discovery (defaults to servers[0].url or the spec URL).'
+    required: false
+    default: ''
+  json-path:
+    description: 'Where to write the full JSON report. Empty disables.'
+    required: false
+    default: ''
+  badge-path:
+    description: 'Where to write Shields.io endpoint JSON for the score badge. Empty disables.'
+    required: false
+    default: ''
+outputs:
+  score:
+    description: 'Overall score 0-100'
+    value: ${{ steps.scan.outputs.score }}
+  findings:
+    description: 'Number of fail + warn findings'
+    value: ${{ steps.scan.outputs.findings }}
+  badge:
+    description: 'Shields.io endpoint JSON for the score'
+    value: ${{ steps.scan.outputs.badge }}
+  score-discoverability:
+    description: 'Discoverability category score'
+    value: ${{ steps.scan.outputs.score_discoverability }}
+  score-docs:
+    description: 'Docs quality category score'
+    value: ${{ steps.scan.outputs.score_docs }}
+  score-errors:
+    description: 'Predictable errors category score'
+    value: ${{ steps.scan.outputs.score_errors }}
+  score-auth:
+    description: 'Auth & identity category score'
+    value: ${{ steps.scan.outputs.score_auth }}
+  score-mcp:
+    description: 'MCP-wrappability category score'
+    value: ${{ steps.scan.outputs.score_mcp }}
+runs:
+  using: 'composite'
+  steps:
+    - id: scan
+      shell: bash
+      run: node "$GITHUB_ACTION_PATH/dist/action.js"
+      env:
+        INPUT_SPEC: ${{ inputs.spec }}
+        INPUT_URL: ${{ inputs.url }}
+        INPUT_FAIL_UNDER: ${{ inputs.fail-under }}
+        INPUT_SKIP_DISCOVERY: ${{ inputs.skip-discovery }}
+        INPUT_ORIGIN: ${{ inputs.origin }}
+        INPUT_JSON_PATH: ${{ inputs.json-path }}
+        INPUT_BADGE_PATH: ${{ inputs.badge-path }}

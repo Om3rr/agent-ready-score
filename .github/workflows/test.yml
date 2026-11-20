@@ -1,0 +1,41 @@
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npm test
+      - name: dist is up to date
+        run: git diff --exit-code -- dist
+  action-selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - id: score
+        uses: ./
+        with:
+          spec: test/fixtures/good.yaml
+          fail-under: '70'
+          skip-discovery: 'true'
+          json-path: /tmp/agent-ready.json
+          badge-path: /tmp/agent-ready-badge.json
+      - run: |
+          test "${{ steps.score.outputs.score }}" -ge 70
+          test -s /tmp/agent-ready.json
+          test -s /tmp/agent-ready-badge.json
+          node -e "const b=require('fs').readFileSync('/tmp/agent-ready-badge.json','utf8'); JSON.parse(b); console.log(b)"
+  worker-dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npx --yes wrangler@4 deploy --dry-run --outdir /tmp/agent-ready-score-out
+        # Not a real deploy. Do not add credentials or wrangler login.

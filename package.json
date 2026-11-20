@@ -1,0 +1,64 @@
+{
+  "name": "agent-ready-score",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Score how ready an API is for AI agents: paste an OpenAPI spec or URL, get a 0-100 score, category breakdown, concrete fixes, a README badge, and a CI Action.",
+  "type": "module",
+  "bin": {
+    "agent-ready-score": "dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./badge": {
+      "types": "./dist/badge.d.ts",
+      "import": "./dist/badge.js"
+    }
+  },
+  "files": [
+    "dist",
+    "action",
+    "action.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test --test-reporter=spec test/*.test.js",
+    "check": "node dist/cli.js",
+    "dry-run": "npx --yes wrangler@4 deploy --dry-run --outdir /tmp/agent-ready-score-out"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "openapi",
+    "api",
+    "agents",
+    "mcp",
+    "score",
+    "cli",
+    "github-action"
+  ],
+  "license": "MIT",
+  "author": "Omer Shacham",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Om3rr/agent-ready-score.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Om3rr/agent-ready-score/issues"
+  },
+  "homepage": "https://github.com/Om3rr/agent-ready-score#readme",
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}
