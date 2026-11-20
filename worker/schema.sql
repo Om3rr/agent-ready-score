@@ -51,3 +51,59 @@ CREATE TABLE IF NOT EXISTS referrers_daily (
   count INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (worker, day, host)
 );
+
+CREATE TABLE IF NOT EXISTS events_daily (
+  worker TEXT NOT NULL,
+  day TEXT NOT NULL,
+  event TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (worker, day, event)
+);
+
+CREATE TABLE IF NOT EXISTS waitlist (
+  email TEXT NOT NULL,
+  product TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  ref_host TEXT,
+  PRIMARY KEY (email, product)
+);
+
+CREATE TABLE IF NOT EXISTS event_rate (
+  worker TEXT NOT NULL,
+  day TEXT NOT NULL,
+  hash TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (worker, day, hash)
+);
+
+CREATE TABLE IF NOT EXISTS outside_scans_daily (
+  worker TEXT NOT NULL,
+  day TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (worker, day)
+);
+
+CREATE TABLE IF NOT EXISTS crawlers_daily (
+  worker TEXT NOT NULL,
+  day TEXT NOT NULL,
+  crawler TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (worker, day, crawler)
+);
+
+CREATE TABLE IF NOT EXISTS internal_daily (
+  worker TEXT NOT NULL,
+  day TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (worker, day)
+);
+
+CREATE TABLE IF NOT EXISTS event_props_daily (
+  worker TEXT NOT NULL,
+  day TEXT NOT NULL,
+  event TEXT NOT NULL,
+  prop TEXT NOT NULL,
+  value TEXT NOT NULL,
+  count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (worker, day, event, prop, value)
+);

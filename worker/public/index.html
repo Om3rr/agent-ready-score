@@ -37,6 +37,10 @@
     footer { padding: 48px 20px; color: var(--muted); font-size: 0.9rem; }
     a { color: var(--accent); }
     .soon { display:inline-block; margin-top: 8px; border:1px solid var(--line); border-radius: 99px; padding: 2px 10px; font-size: 12px; color: var(--muted); }
+    .hp { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
+    #waitlist { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 16px 0 8px; }
+    #waitlist input[type=email] { flex:1; min-width:220px; background:#0d1117; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font: inherit; }
+    #waitlist button { background: transparent; color: var(--ink); border:1px solid var(--line); }
   </style>
 </head>
 <body>
@@ -63,8 +67,32 @@
   <footer>
     <p>Checks: discoverability (llms.txt, OpenAPI, well-known, robots), docs quality, predictable errors, auth &amp; identity, and MCP-wrappability. Use the CLI or GitHub Action in CI, and embed a README badge.</p>
     <p>Pro coming soon. This free tool does not include history, teams, or paid checkout.</p>
+    <form id="waitlist">
+      <input type="email" name="email" required placeholder="you@company.com" autocomplete="email">
+      <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button type="submit">Join the Pro waitlist</button>
+    </form>
+    <p class="hint">We'll email you once when Pro launches. No spam, unsubscribe anytime.</p>
+    <p id="waitlist-msg" class="hint" hidden></p>
   </footer>
   <script>
+    const ping = (event, extra={}) => {
+      try {
+        const body = JSON.stringify({ event, path: location.pathname, ref: document.referrer, ...extra });
+        const blob = new Blob([body], { type: 'application/json' });
+        if (navigator.sendBeacon) navigator.sendBeacon('/api/event', blob);
+        else fetch('/api/event', { method: 'POST', headers: { 'content-type': 'application/json' }, body, keepalive: true }).catch(()=>{});
+      } catch {}
+    };
+    try {
+      ping('landing_view');
+      document.addEventListener('click', (ev) => {
+        const a = ev.target && ev.target.closest && ev.target.closest('a');
+        if (!a) return;
+        const href = a.getAttribute('href') || '';
+        if (/github.com\/Om3rr\/agent-ready-score|marketplace\/actions/i.test(href)) ping('action_install_click');
+      });
+    } catch {}
     const form = document.getElementById('form');
     const result = document.getElementById('result');
     const err = document.getElementById('err');
@@ -120,6 +148,16 @@
       `;
       result.style.display = 'block';
     }
+    const wl = document.getElementById('waitlist');
+    const wlMsg = document.getElementById('waitlist-msg');
+    if (wl) wl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(wl);
+      const res = await fetch('/api/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: fd.get('email'), website: fd.get('website') }) });
+      const data = await res.json().catch(() => ({}));
+      wlMsg.hidden = false;
+      wlMsg.textContent = data.ok ? (data.already ? 'You are already on the list.' : 'You are on the Pro waitlist.') : (data.error || 'Could not save that.');
+    });
   </script>
 </body>
 </html>

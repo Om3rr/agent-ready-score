@@ -38,11 +38,48 @@ function tzOffsetMinutes(now, tz) {
     const minutes = Number(m[2]) * 60 + Number(m[3] || 0);
     return m[1] === "-" ? -minutes : minutes;
 }
-export function isBot(request) {
+export const AI_CRAWLERS = [
+    { name: "GPTBot", re: /gptbot/i },
+    { name: "ClaudeBot", re: /claudebot/i },
+    { name: "PerplexityBot", re: /perplexitybot/i },
+    { name: "OAI-SearchBot", re: /oai-searchbot/i },
+    { name: "Google-Extended", re: /google-extended/i },
+    { name: "CCBot", re: /\bccbot\b/i },
+];
+export function aiCrawlerName(ua) {
+    for (const c of AI_CRAWLERS)
+        if (c.re.test(ua))
+            return c.name;
+    return null;
+}
+export function isInternalRequest(request) {
+    if ((request.headers.get("x-studio-internal") || "").trim() === "1")
+        return true;
     const ua = request.headers.get("user-agent") || "";
-    if (!ua.trim())
-        return false;
-    return BOT_RE.test(ua);
+    if (/studio-agent/i.test(ua))
+        return true;
+    if (/github-actions|actions\/runner|github.com\/actions|dependabot/i.test(ua))
+        return true;
+    if (/\bcurl\/|\bwget\/|\bhttpie\//i.test(ua))
+        return true;
+    if (/^node(\/|\b)|node-fetch|\bundici\b|^Node\.js/i.test(ua))
+        return true;
+    return false;
+}
+export function classifyTraffic(request) {
+    if (isInternalRequest(request))
+        return { class: "internal" };
+    const ua = request.headers.get("user-agent") || "";
+    const crawler = aiCrawlerName(ua);
+    if (crawler)
+        return { class: "ai_crawler", crawler };
+    if (ua.trim() && BOT_RE.test(ua))
+        return { class: "bot" };
+    return { class: "human" };
+}
+export function isBot(request) {
+    const kind = classifyTraffic(request).class;
+    return kind === "bot" || kind === "ai_crawler";
 }
 export function bucketRoute(pathname) {
     let p = pathname.replace(/\/+$/, "") || "/";
@@ -63,22 +100,42 @@ export function bucketRoute(pathname) {
 export function shouldSkipRoute(route) {
     return SKIP_ROUTES.has(route);
 }
-export function referrerHost(request) {
-    const raw = request.headers.get("referer") || request.headers.get("referrer") || "";
+/** Store utm:source/medium/campaign as-is; otherwise keep only the referrer host. */
+export function normalizeRef(raw) {
     if (!raw)
         return null;
+    const s = raw.trim();
+    if (!s)
+        return null;
+    if (s.toLowerCase().startsWith("utm:"))
+        return s.slice(0, 180);
     try {
-        const host = new URL(raw).host.toLowerCase();
-        if (!host)
-            return null;
-        const self = new URL(request.url).host.toLowerCase();
-        if (host === self)
-            return null;
-        return host.slice(0, 180);
+        const host = new URL(s).host.toLowerCase();
+        return host ? host.slice(0, 180) : null;
     }
     catch {
         return null;
     }
+}
+export function referrerHost(request, override) {
+    const fromOverride = normalizeRef(override);
+    if (fromOverride)
+        return fromOverride;
+    const raw = request.headers.get("referer") || request.headers.get("referrer") || "";
+    const normalized = normalizeRef(raw);
+    if (!normalized)
+        return null;
+    if (normalized.toLowerCase().startsWith("utm:"))
+        return normalized;
+    try {
+        const self = new URL(request.url).host.toLowerCase();
+        if (normalized === self)
+            return null;
+    }
+    catch {
+        /* ignore */
+    }
+    return normalized;
 }
 export async function visitorHash(salt, ip, ua) {
     const data = new TextEncoder().encode(`${salt}\n${ip}\n${ua}`);
@@ -99,6 +156,91 @@ async function dailySalt(db, day) {
     const row = await db.prepare("SELECT salt FROM daily_salts WHERE day = ?").bind(day).first();
     return row?.salt || salt;
 }
+export const ALLOWED_EVENTS = [
+    "landing_view",
+    "scan_started",
+    "scan_completed",
+    "scan_failed",
+    "badge_copied",
+    "action_install_click",
+    "pro_waitlist_signup",
+    "price_click",
+];
+const ALLOWED_EVENT_SET = new Set(ALLOWED_EVENTS);
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$/;
+const EVENT_RATE_LIMIT = 60;
+const WAITLIST_RATE_LIMIT = 8;
+const OUTSIDE_PEPPER = "studio-outside-v1";
+/** SHA-256(pepper || box egress IP). Raw IPs are never stored in the repo. */
+const BOX_IP_HASHES = new Set([
+    "d8a0842ef240b7217b611f08e975be7d096d6583b974958f0401064c06381ab7",
+    "c8c6916000c7f13fc44c50f95a8f7b41e9d5ed6bcb3b6cde57e57893498578e9",
+    "190e71a7d1fb5d42d88b94ccce5eb5dc64ac101d2de063ba4950baeb77ba6f97",
+]);
+const TEST_TARGET_HOSTS = new Set([
+    "mcp-readiness.omer20sh.workers.dev",
+    "agent-ready-score.omer20sh.workers.dev",
+    "mcp.context7.com",
+    "petstore.swagger.io",
+    "petstore3.swagger.io",
+    "example.com",
+    "www.example.com",
+    "example.org",
+    "example.net",
+    "localhost",
+    "127.0.0.1",
+    "widgets.example",
+    "api.widgets.example",
+    "w.test",
+    "score.example",
+]);
+const TEST_REF_HOSTS = new Set(["landing-probe.example", "score.example", "w.test"]);
+export async function pepperedIpHash(ip) {
+    const data = new TextEncoder().encode(`${OUTSIDE_PEPPER}\n${ip}`);
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+export function targetHostOf(url) {
+    if (!url)
+        return null;
+    try {
+        return new URL(url).host.toLowerCase();
+    }
+    catch {
+        return null;
+    }
+}
+export async function isOutsideScan(request, targetUrl) {
+    if (!targetUrl)
+        return false;
+    const host = targetHostOf(targetUrl);
+    if (!host || TEST_TARGET_HOSTS.has(host))
+        return false;
+    const ref = referrerHost(request);
+    if (ref && TEST_REF_HOSTS.has(ref))
+        return false;
+    const ip = connectingIp(request);
+    if (ip && BOX_IP_HASHES.has(await pepperedIpHash(ip)))
+        return false;
+    return true;
+}
+async function bumpEvent(db, worker, day, event) {
+    await db
+        .prepare("INSERT INTO events_daily (worker, day, event, count) VALUES (?, ?, ?, 1) ON CONFLICT(worker, day, event) DO UPDATE SET count = count + 1")
+        .bind(worker, day, event)
+        .run();
+}
+async function rateLimitVisitor(db, worker, day, hash, limit) {
+    const row = await db.prepare("SELECT count FROM event_rate WHERE worker = ? AND day = ? AND hash = ?").bind(worker, day, hash).first();
+    const n = Number(row?.count || 0);
+    if (n >= limit)
+        return false;
+    await db
+        .prepare("INSERT INTO event_rate (worker, day, hash, count) VALUES (?, ?, ?, 1) ON CONFLICT(worker, day, hash) DO UPDATE SET count = count + 1")
+        .bind(worker, day, hash)
+        .run();
+    return true;
+}
 /** Record one request. Fail-open: throws are swallowed by scheduleTrack. Never stores raw IPs. */
 export async function recordVisit(env, request, opts) {
     const db = env.METRICS;
@@ -109,10 +251,25 @@ export async function recordVisit(env, request, opts) {
     const route = bucketRoute(opts.route);
     if (shouldSkipRoute(route))
         return;
-    if (isBot(request))
-        return;
     const day = israelDay();
     const worker = opts.worker;
+    const kind = classifyTraffic(request);
+    if (kind.class === "internal") {
+        await db
+            .prepare("INSERT INTO internal_daily (worker, day, count) VALUES (?, ?, 1) ON CONFLICT(worker, day) DO UPDATE SET count = count + 1")
+            .bind(worker, day)
+            .run();
+        return;
+    }
+    if (kind.class === "ai_crawler" && kind.crawler) {
+        await db
+            .prepare("INSERT INTO crawlers_daily (worker, day, crawler, count) VALUES (?, ?, ?, 1) ON CONFLICT(worker, day, crawler) DO UPDATE SET count = count + 1")
+            .bind(worker, day, kind.crawler)
+            .run();
+        return;
+    }
+    if (kind.class === "bot")
+        return;
     const salt = await dailySalt(db, day);
     const hash = await visitorHash(salt, connectingIp(request), request.headers.get("user-agent") || "");
     await db
@@ -142,11 +299,26 @@ export async function recordVisit(env, request, opts) {
             .bind(worker, day)
             .run();
     }
-    const host = referrerHost(request);
+    const host = referrerHost(request, opts.ref);
     if (host) {
         await db
             .prepare("INSERT INTO referrers_daily (worker, day, host, count) VALUES (?, ?, ?, 1) ON CONFLICT(worker, day, host) DO UPDATE SET count = count + 1")
             .bind(worker, day, host)
+            .run();
+    }
+    const evs = [...(opts.events || [])];
+    if (opts.scan === "success")
+        evs.push("scan_completed");
+    else if (opts.scan === "fail")
+        evs.push("scan_failed");
+    for (const ev of evs) {
+        if (ALLOWED_EVENT_SET.has(ev))
+            await bumpEvent(db, worker, day, ev);
+    }
+    if ((opts.scan === "success" || opts.scan === "fail") && (await isOutsideScan(request, opts.targetUrl))) {
+        await db
+            .prepare("INSERT INTO outside_scans_daily (worker, day, count) VALUES (?, ?, 1) ON CONFLICT(worker, day) DO UPDATE SET count = count + 1")
+            .bind(worker, day)
             .run();
     }
 }
@@ -161,7 +333,7 @@ const emptyStats = (worker) => ({
     timezone: WORKER_TZ,
     generated_at: israelNowIso(),
     window_days: 30,
-    totals: { requests: 0, unique_visitors: 0, scans: { success: 0, fail: 0 }, badge_hits: 0 },
+    totals: { requests: 0, unique_visitors: 0, scans: { success: 0, fail: 0 }, badge_hits: 0, waitlist_signups: 0, outside_scans: 0, events: {}, internal_hits: 0, ai_crawlers: {}, price_click_tiers: {} },
     daily: [],
     routes: [],
     top_referrers: [],
@@ -182,13 +354,15 @@ export async function readStats(env, worker) {
               IFNULL(u.count, 0) AS unique_visitors,
               IFNULL(s.success, 0) AS scans_success,
               IFNULL(s.fail, 0) AS scans_fail,
-              IFNULL(b.count, 0) AS badge_hits
+              IFNULL(b.count, 0) AS badge_hits,
+              IFNULL(o.count, 0) AS outside_scans
        FROM (SELECT day, SUM(count) AS requests FROM requests_daily WHERE worker = ? AND day >= ? GROUP BY day) r
        LEFT JOIN uniques_daily u ON u.worker = ? AND u.day = r.day
        LEFT JOIN scans_daily s ON s.worker = ? AND s.day = r.day
        LEFT JOIN badges_daily b ON b.worker = ? AND b.day = r.day
+       LEFT JOIN outside_scans_daily o ON o.worker = ? AND o.day = r.day
        ORDER BY r.day ASC`)
-        .bind(worker, since, worker, worker, worker)
+        .bind(worker, since, worker, worker, worker, worker)
         .all();
     out.daily = (dailyRows.results || []).map((row) => ({
         day: String(row.day),
@@ -197,6 +371,7 @@ export async function readStats(env, worker) {
         scans_success: Number(row.scans_success) || 0,
         scans_fail: Number(row.scans_fail) || 0,
         badge_hits: Number(row.badge_hits) || 0,
+        outside_scans: Number(row.outside_scans) || 0,
     }));
     for (const row of out.daily) {
         out.totals.requests += row.requests;
@@ -204,6 +379,7 @@ export async function readStats(env, worker) {
         out.totals.scans.success += row.scans_success;
         out.totals.scans.fail += row.scans_fail;
         out.totals.badge_hits += row.badge_hits;
+        out.totals.outside_scans += row.outside_scans;
     }
     const routes = await db
         .prepare("SELECT route, SUM(count) AS count FROM requests_daily WHERE worker = ? AND day >= ? GROUP BY route ORDER BY count DESC, route ASC LIMIT 30")
@@ -215,6 +391,42 @@ export async function readStats(env, worker) {
         .bind(worker, since)
         .all();
     out.top_referrers = (refs.results || []).map((row) => ({ host: String(row.host), count: Number(row.count) || 0 }));
+    const evs = await db
+        .prepare("SELECT event, SUM(count) AS count FROM events_daily WHERE worker = ? AND day >= ? GROUP BY event ORDER BY count DESC, event ASC")
+        .bind(worker, since)
+        .all();
+    for (const row of evs.results || []) {
+        const name = String(row.event);
+        if (!ALLOWED_EVENT_SET.has(name))
+            continue;
+        out.totals.events[name] = Number(row.count) || 0;
+    }
+    const wl = await db
+        .prepare("SELECT COUNT(*) AS count FROM waitlist WHERE product = ? AND created_at >= ?")
+        .bind(worker, `${since}T00:00:00+02:00`)
+        .first();
+    // Also count rows whose created_at is a date-only or ISO in the window; fallback to all-time for this product if the comparison is too strict.
+    const wlAll = await db.prepare("SELECT COUNT(*) AS count FROM waitlist WHERE product = ?").bind(worker).first();
+    out.totals.waitlist_signups = Number(wlAll?.count || wl?.count || 0);
+    const internal = await db
+        .prepare("SELECT IFNULL(SUM(count), 0) AS count FROM internal_daily WHERE worker = ? AND day >= ?")
+        .bind(worker, since)
+        .first();
+    out.totals.internal_hits = Number(internal?.count || 0);
+    const crawlers = await db
+        .prepare("SELECT crawler, SUM(count) AS count FROM crawlers_daily WHERE worker = ? AND day >= ? GROUP BY crawler ORDER BY count DESC, crawler ASC")
+        .bind(worker, since)
+        .all();
+    for (const row of crawlers.results || []) {
+        out.totals.ai_crawlers[String(row.crawler)] = Number(row.count) || 0;
+    }
+    const tiers = await db
+        .prepare("SELECT value, SUM(count) AS count FROM event_props_daily WHERE worker = ? AND day >= ? AND event = 'price_click' AND prop = 'tier' GROUP BY value ORDER BY count DESC, value ASC")
+        .bind(worker, since)
+        .all();
+    for (const row of tiers.results || []) {
+        out.totals.price_click_tiers[String(row.value)] = Number(row.count) || 0;
+    }
     return out;
 }
 export function statsJsonResponse(data) {
@@ -228,15 +440,32 @@ export function statsJsonResponse(data) {
 }
 const esc = escapeHtml;
 export function statsHtmlResponse(data, title) {
+    const totals = data.totals || {};
+    const events = totals.events || {};
+    const aiCrawlers = totals.ai_crawlers || {};
+    const priceTiers = totals.price_click_tiers || {};
+    const internalHits = Number(totals.internal_hits || 0);
     const dailyRows = data.daily
         .slice()
         .reverse()
-        .map((d) => `<tr><td>${esc(d.day)}</td><td>${d.requests}</td><td>${d.unique_visitors}</td><td>${d.scans_success}</td><td>${d.scans_fail}</td><td>${d.badge_hits}</td></tr>`)
-        .join("") || `<tr><td colspan="6">No traffic recorded in the last 30 days yet.</td></tr>`;
+        .map((d) => `<tr><td>${esc(d.day)}</td><td>${d.requests}</td><td>${d.unique_visitors}</td><td>${d.scans_success}</td><td>${d.scans_fail}</td><td>${d.outside_scans}</td><td>${d.badge_hits}</td></tr>`)
+        .join("") || `<tr><td colspan="7">No traffic recorded in the last 30 days yet.</td></tr>`;
     const routeRows = data.routes.map((r) => `<tr><td><code>${esc(r.route)}</code></td><td>${r.count}</td></tr>`).join("") ||
         `<tr><td colspan="2">None yet.</td></tr>`;
     const refRows = data.top_referrers.map((r) => `<tr><td>${esc(r.host)}</td><td>${r.count}</td></tr>`).join("") ||
         `<tr><td colspan="2">None yet.</td></tr>`;
+    const eventRows = Object.entries(events)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .map(([name, count]) => `<tr><td><code>${esc(name)}</code></td><td>${count}</td></tr>`)
+        .join("") || `<tr><td colspan="2">None yet.</td></tr>`;
+    const crawlerRows = Object.entries(aiCrawlers)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .map(([name, count]) => `<tr><td>${esc(name)}</td><td>${count}</td></tr>`)
+        .join("") || `<tr><td colspan="2">None yet.</td></tr>`;
+    const tierRows = Object.entries(priceTiers)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .map(([name, count]) => `<tr><td><code>${esc(name)}</code></td><td>${count}</td></tr>`)
+        .join("") || `<tr><td colspan="2">None yet.</td></tr>`;
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -264,18 +493,22 @@ export function statsHtmlResponse(data, title) {
   <h1>${esc(title)}</h1>
   <p class="meta">Public, privacy-preserving totals for the last ${data.window_days} days.
     Timezone: Israel time (${esc(data.timezone)}). Generated ${esc(data.generated_at)}.
-    No IP addresses or other personal data are stored on this page.
+    No IP addresses, emails, or other personal data are shown here. Waitlist emails are stored privately and never appear on this page.
     JSON: <a href="/stats">/stats</a>.</p>
   <div class="cards">
-    <div class="card"><div class="n">${data.totals.requests}</div><div class="l">Requests</div></div>
-    <div class="card"><div class="n">${data.totals.unique_visitors}</div><div class="l">Unique visitors</div></div>
-    <div class="card"><div class="n">${data.totals.scans.success}</div><div class="l">Scans succeeded</div></div>
-    <div class="card"><div class="n">${data.totals.scans.fail}</div><div class="l">Scans failed</div></div>
-    <div class="card"><div class="n">${data.totals.badge_hits}</div><div class="l">Badge hits</div></div>
+    <div class="card"><div class="n">${totals.requests || 0}</div><div class="l">Requests</div></div>
+    <div class="card"><div class="n">${totals.unique_visitors || 0}</div><div class="l">Unique visitors</div></div>
+    <div class="card"><div class="n">${totals.scans?.success || 0}</div><div class="l">Scans succeeded</div></div>
+    <div class="card"><div class="n">${totals.scans?.fail || 0}</div><div class="l">Scans failed</div></div>
+    <div class="card"><div class="n">${totals.badge_hits || 0}</div><div class="l">Badge hits</div></div>
+    <div class="card"><div class="n">${totals.outside_scans || 0}</div><div class="l">Outside scans</div></div>
+    <div class="card"><div class="n">${totals.waitlist_signups || 0}</div><div class="l">Pro waitlist</div></div>
+    <div class="card"><div class="n">${internalHits}</div><div class="l">Internal hits (excluded)</div></div>
+    <div class="card"><div class="n">${Object.values(aiCrawlers).reduce((a, b) => a + b, 0)}</div><div class="l">AI crawlers (excluded)</div></div>
   </div>
   <h2>Daily</h2>
   <table>
-    <thead><tr><th>Day</th><th>Requests</th><th>Uniques</th><th>Scans ok</th><th>Scans fail</th><th>Badges</th></tr></thead>
+    <thead><tr><th>Day</th><th>Requests</th><th>Uniques</th><th>Scans ok</th><th>Scans fail</th><th>Outside</th><th>Badges</th></tr></thead>
     <tbody>${dailyRows}</tbody>
   </table>
   <h2>Routes</h2>
@@ -283,11 +516,29 @@ export function statsHtmlResponse(data, title) {
     <thead><tr><th>Route</th><th>Requests</th></tr></thead>
     <tbody>${routeRows}</tbody>
   </table>
-  <h2>Top referrers (host only)</h2>
+  <h2>Events</h2>
   <table>
-    <thead><tr><th>Host</th><th>Hits</th></tr></thead>
+    <thead><tr><th>Event</th><th>Count</th></tr></thead>
+    <tbody>${eventRows}</tbody>
+  </table>
+  <h2>Price clicks by tier</h2>
+  <table>
+    <thead><tr><th>Tier</th><th>Clicks</th></tr></thead>
+    <tbody>${tierRows}</tbody>
+  </table>
+  <h2>Top referrers</h2>
+  <table>
+    <thead><tr><th>Referrer</th><th>Hits</th></tr></thead>
     <tbody>${refRows}</tbody>
   </table>
+  <h2>Excluded: AI crawlers</h2>
+  <table>
+    <thead><tr><th>Crawler</th><th>Hits</th></tr></thead>
+    <tbody>${crawlerRows}</tbody>
+  </table>
+  <h2>Excluded: internal hits</h2>
+  <p class="meta">GitHub Actions/CI, curl/node, <code>x-studio-internal: 1</code>, and user-agents containing <code>studio-agent</code>. These are not included in visitor or scan counts.</p>
+  <p>Internal hits: <strong>${internalHits}</strong></p>
 </body>
 </html>`;
     return new Response(html, {
@@ -305,4 +556,126 @@ export async function handleStats(env, worker, path, title) {
     if (path === "/stats.html")
         return statsHtmlResponse(data, title);
     return statsJsonResponse(data);
+}
+function corsJson(data, status = 200) {
+    return new Response(status === 204 ? null : JSON.stringify(data), {
+        status,
+        headers: {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "POST, OPTIONS",
+            "access-control-allow-headers": "content-type",
+        },
+    });
+}
+async function parseJsonBody(request) {
+    const text = await request.text();
+    if (!text)
+        return {};
+    if (text.length > 4000)
+        return null;
+    try {
+        return JSON.parse(text);
+    }
+    catch {
+        return null;
+    }
+}
+/** POST /api/event — for navigator.sendBeacon and small CTA pings. Rejects unknown events. */
+export async function handleEvent(request, env, worker) {
+    if (request.method === "OPTIONS")
+        return corsJson(null, 204);
+    if (request.method !== "POST")
+        return corsJson({ ok: false, error: "method_not_allowed" }, 405);
+    const body = await parseJsonBody(request);
+    if (!body)
+        return corsJson({ ok: false, error: "invalid_json" }, 400);
+    const event = String(body.event || "");
+    if (!ALLOWED_EVENT_SET.has(event))
+        return corsJson({ ok: false, error: "unknown_event" }, 400);
+    // Waitlist signups must go through /api/waitlist so we can validate the email.
+    if (event === "pro_waitlist_signup")
+        return corsJson({ ok: false, error: "use_waitlist_endpoint" }, 400);
+    const db = env.METRICS;
+    if (!db)
+        return corsJson({ ok: true, recorded: false }, 202);
+    const kind = classifyTraffic(request);
+    if (kind.class !== "human") {
+        // Still record the request as excluded, but do not inflate visitor/event funnels.
+        try {
+            await recordVisit(env, request, { worker, route: "/api/event", skip: false });
+        }
+        catch { /* fail open */ }
+        return corsJson({ ok: true, recorded: false }, 202);
+    }
+    try {
+        const day = israelDay();
+        const salt = await dailySalt(db, day);
+        const hash = await visitorHash(salt, connectingIp(request), request.headers.get("user-agent") || "");
+        if (!(await rateLimitVisitor(db, worker, day, hash, EVENT_RATE_LIMIT))) {
+            return corsJson({ ok: false, error: "rate_limited" }, 429);
+        }
+        await bumpEvent(db, worker, day, event);
+        const ref = normalizeRef(body.ref == null ? null : String(body.ref));
+        if (ref) {
+            await db
+                .prepare("INSERT INTO referrers_daily (worker, day, host, count) VALUES (?, ?, ?, 1) ON CONFLICT(worker, day, host) DO UPDATE SET count = count + 1")
+                .bind(worker, day, ref)
+                .run();
+        }
+        if (event === "price_click") {
+            const props = (body.props && typeof body.props === "object") ? body.props : {};
+            const tier = String(props.tier ?? body.tier ?? "").trim().slice(0, 40);
+            if (tier) {
+                await db
+                    .prepare("INSERT INTO event_props_daily (worker, day, event, prop, value, count) VALUES (?, ?, ?, 'tier', ?, 1) ON CONFLICT(worker, day, event, prop, value) DO UPDATE SET count = count + 1")
+                    .bind(worker, day, event, tier)
+                    .run();
+            }
+        }
+        return corsJson({ ok: true }, 204);
+    }
+    catch {
+        return corsJson({ ok: true, recorded: false }, 202);
+    }
+}
+/** POST /api/waitlist — private email capture. Emails never appear in /stats. */
+export async function handleWaitlist(request, env, worker) {
+    if (request.method === "OPTIONS")
+        return corsJson(null, 204);
+    if (request.method !== "POST")
+        return corsJson({ ok: false, error: "method_not_allowed" }, 405);
+    const body = await parseJsonBody(request);
+    if (!body)
+        return corsJson({ ok: false, error: "invalid_json" }, 400);
+    const honeypot = String(body.website || body.company || body.hp || "").trim();
+    if (honeypot)
+        return corsJson({ ok: true }); // pretend success
+    const email = String(body.email || "").trim().toLowerCase();
+    if (!EMAIL_RE.test(email))
+        return corsJson({ ok: false, error: "Enter a valid email." }, 400);
+    const db = env.METRICS;
+    if (!db)
+        return corsJson({ ok: false, error: "Waitlist is not open yet." }, 503);
+    try {
+        const day = israelDay();
+        const salt = await dailySalt(db, day);
+        const hash = await visitorHash(salt, connectingIp(request), request.headers.get("user-agent") || "");
+        if (!(await rateLimitVisitor(db, worker, day, hash, WAITLIST_RATE_LIMIT))) {
+            return corsJson({ ok: false, error: "rate_limited" }, 429);
+        }
+        const ref = referrerHost(request, body.ref == null ? null : String(body.ref));
+        const inserted = await db
+            .prepare("INSERT OR IGNORE INTO waitlist (email, product, created_at, ref_host) VALUES (?, ?, ?, ?)")
+            .bind(email, worker, israelNowIso(), ref)
+            .run();
+        const isNew = inserted?.meta?.changes === 1;
+        if (isNew)
+            await bumpEvent(db, worker, day, "pro_waitlist_signup");
+        return corsJson({ ok: true, already: !isNew });
+    }
+    catch {
+        return corsJson({ ok: false, error: "Could not save that just now." }, 500);
+    }
 }
