@@ -1,4 +1,6 @@
 /** Privacy-preserving traffic counters for the studio Workers (D1 `studio-metrics`). */
+import { escapeHtml } from "./escape.js";
+
 export const WORKER_TZ = "Asia/Jerusalem";
 
 export interface MetricsDB {
@@ -314,9 +316,7 @@ export function statsJsonResponse(data: StatsPayload): Response {
   });
 }
 
-function esc(s: string): string {
-  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] || c);
-}
+const esc = escapeHtml;
 
 export function statsHtmlResponse(data: StatsPayload, title: string): Response {
   const dailyRows =

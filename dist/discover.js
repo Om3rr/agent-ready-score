@@ -58,7 +58,9 @@ export function extractSpecUrlsFromHtml(html, baseUrl) {
     const found = new Set();
     const add = (raw) => {
         try {
-            found.add(new URL(raw.trim(), baseUrl).href);
+            const u = new URL(raw.trim(), baseUrl);
+            if (u.protocol === "http:" || u.protocol === "https:")
+                found.add(u.href);
         }
         catch {
             /* ignore */

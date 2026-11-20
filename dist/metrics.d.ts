@@ -1,4 +1,3 @@
-/** Privacy-preserving traffic counters for the studio Workers (D1 `studio-metrics`). */
 export declare const WORKER_TZ = "Asia/Jerusalem";
 export interface MetricsDB {
     prepare(sql: string): {

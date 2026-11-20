@@ -7587,7 +7587,8 @@ function extractSpecUrlsFromHtml(html, baseUrl) {
   const found = /* @__PURE__ */ new Set();
   const add = (raw) => {
     try {
-      found.add(new URL(raw.trim(), baseUrl).href);
+      const u = new URL(raw.trim(), baseUrl);
+      if (u.protocol === "http:" || u.protocol === "https:") found.add(u.href);
     } catch {
     }
   };
@@ -8410,6 +8411,17 @@ function formatReport(report) {
   return lines.join("\n");
 }
 
+// src/escape.ts
+function isHttpUrl(value) {
+  if (typeof value !== "string" || !value.trim()) return false;
+  try {
+    const u = new URL(value.trim());
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // src/badge.ts
 function scoreColor(score) {
   if (score == null || Number.isNaN(score)) return "lightgrey";
@@ -8450,6 +8462,9 @@ async function scoreSource(input, opts = {}) {
         source: input.filePath
       };
     } else if (input.url) {
+      if (!isHttpUrl(input.url)) {
+        return { ok: false, error: "Only http(s) URLs are supported." };
+      }
       const loaded = await loadSpecFromUrl(input.url, fetchImpl, { timeoutMs, userAgent });
       doc = loaded.doc;
       specUrl = loaded.url;

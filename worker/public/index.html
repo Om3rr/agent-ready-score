@@ -91,20 +91,29 @@
       }
     });
     function tone(n) { return n >= 90 ? 'green' : n >= 70 ? 'yellow' : 'red'; }
+    // Everything from the scored spec (title, check text, fixes, ids) is untrusted: escape before innerHTML.
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    }
+    function num(v) { const n = Number(v); return Number.isFinite(n) ? n : 0; }
+    const STATUS = { pass: 'pass', warn: 'warn', fail: 'fail', skip: 'skip', info: 'info' };
     function render(r) {
       const cats = (r.categories || []).map(c => {
-        const n = c.score == null ? 0 : c.score;
-        const label = c.score == null ? 'n/a' : Math.round(c.score);
-        return `<li><span>${c.label}</span><span style="display:flex;gap:10px;align-items:center"><span class="bar"><span style="width:${n}%"></span></span><strong>${label}</strong></span></li>`;
+        const n = c.score == null ? 0 : Math.max(0, Math.min(100, num(c.score)));
+        const label = c.score == null ? 'n/a' : Math.round(num(c.score));
+        return `<li><span>${esc(c.label)}</span><span style="display:flex;gap:10px;align-items:center"><span class="bar"><span style="width:${n}%"></span></span><strong>${esc(label)}</strong></span></li>`;
       }).join('');
-      const fixes = (r.findings || []).filter(f => f.fix).map(f =>
-        `<div class="fix"><div class="lvl ${f.status}">${f.status} · ${f.id}</div><strong>${f.title}</strong><div class="hint">${f.fix}</div></div>`
-      ).join('') || '<p class="hint">No outstanding fixes. Nice work.</p>';
+      const fixes = (r.findings || []).filter(f => f.fix).map(f => {
+        const st = STATUS[f.status] || 'info';
+        return `<div class="fix"><div class="lvl ${st}">${esc(f.status)} · ${esc(f.id)}</div><strong>${esc(f.title)}</strong><div class="hint">${esc(f.fix)}</div></div>`;
+      }).join('') || '<p class="hint">No outstanding fixes. Nice work.</p>';
+      const score = Math.round(num(r.score));
+      const tl = r.toolList || {};
       result.innerHTML = `
-        <p class="hint">${r.title} · ${r.specVersion}</p>
-        <p class="score ${tone(r.score)}">${r.score}<span style="font-size:1.2rem;color:var(--muted)">/100</span></p>
+        <p class="hint">${esc(r.title)} · ${esc(r.specVersion)}</p>
+        <p class="score ${tone(score)}">${score}<span style="font-size:1.2rem;color:var(--muted)">/100</span></p>
         <ul class="cats">${cats}</ul>
-        <p class="hint">Generated tool list: ${r.toolList.operations} operations ≈ ${r.toolList.tokens} tokens</p>
+        <p class="hint">Generated tool list: ${num(tl.operations)} operations ≈ ${num(tl.tokens)} tokens</p>
         <h2>Fixes</h2>
         ${fixes}
         <p class="hint" style="margin-top:16px">Badge: <code>https://this-host/badge?url=YOUR_SPEC_URL</code> · Shields endpoint: add <code>&amp;format=json</code></p>

@@ -1,4 +1,3 @@
-/** Shields.io endpoint JSON and a static SVG badge. */
 export type BadgeColorName = "brightgreen" | "yellow" | "red" | "lightgrey";
 export interface ShieldsEndpoint {
     schemaVersion: 1;
