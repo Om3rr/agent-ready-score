@@ -1,0 +1,218 @@
+[
+ [
+  "stripe",
+  "Stripe API",
+  "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json",
+  "https://api.stripe.com"
+ ],
+ [
+  "github",
+  "GitHub REST API",
+  "https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json",
+  "https://api.github.com"
+ ],
+ [
+  "petstore",
+  "Swagger Petstore 3",
+  "https://petstore3.swagger.io/api/v3/openapi.json",
+  null
+ ],
+ [
+  "twilio",
+  "Twilio API (2010)",
+  "https://raw.githubusercontent.com/twilio/twilio-oai/main/spec/json/twilio_api_v2010.json",
+  "https://api.twilio.com"
+ ],
+ [
+  "sendgrid",
+  "Twilio SendGrid Mail v3",
+  "https://raw.githubusercontent.com/twilio/sendgrid-oai/main/spec/json/tsg_mail_v3.json",
+  "https://api.sendgrid.com"
+ ],
+ [
+  "openai",
+  "OpenAI API",
+  "https://raw.githubusercontent.com/openai/openai-openapi/master/openapi.yaml",
+  "https://api.openai.com"
+ ],
+ [
+  "digitalocean",
+  "DigitalOcean API",
+  "https://api-engineering.nyc3.cdn.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml",
+  "https://api.digitalocean.com"
+ ],
+ [
+  "asana",
+  "Asana API",
+  "https://raw.githubusercontent.com/Asana/openapi/master/defs/asana_oas.yaml",
+  "https://app.asana.com"
+ ],
+ [
+  "box",
+  "Box Platform API",
+  "https://raw.githubusercontent.com/box/box-openapi/main/openapi.json",
+  "https://api.box.com"
+ ],
+ [
+  "pagerduty",
+  "PagerDuty REST API",
+  "https://raw.githubusercontent.com/PagerDuty/api-schema/main/reference/REST/openapiv3.json",
+  "https://api.pagerduty.com"
+ ],
+ [
+  "discord",
+  "Discord HTTP API",
+  "https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json",
+  "https://discord.com"
+ ],
+ [
+  "vercel",
+  "Vercel REST API",
+  "https://openapi.vercel.sh/",
+  "https://api.vercel.com"
+ ],
+ [
+  "spotify",
+  "Spotify Web API",
+  "https://developer.spotify.com/reference/web-api/open-api-schema.yaml",
+  "https://api.spotify.com"
+ ],
+ [
+  "plaid",
+  "Plaid API",
+  "https://raw.githubusercontent.com/plaid/plaid-openapi/master/2020-09-14.yml",
+  "https://production.plaid.com"
+ ],
+ [
+  "adyen",
+  "Adyen Checkout API v71",
+  "https://raw.githubusercontent.com/Adyen/adyen-openapi/main/json/CheckoutService-v71.json",
+  "https://checkout-test.adyen.com"
+ ],
+ [
+  "linode",
+  "Linode (Akamai) API",
+  "https://raw.githubusercontent.com/linode/linode-api-docs/development/openapi.json",
+  "https://api.linode.com"
+ ],
+ [
+  "jira",
+  "Jira Cloud Platform REST v3",
+  "https://developer.atlassian.com/cloud/jira/platform/swagger-v3.v3.json",
+  "https://your-domain.atlassian.net"
+ ],
+ [
+  "resend",
+  "Resend API",
+  "https://raw.githubusercontent.com/resend/resend-openapi/main/resend.yaml",
+  "https://api.resend.com"
+ ],
+ [
+  "supabase",
+  "Supabase Management API",
+  "https://api.supabase.com/api/v1-json",
+  "https://api.supabase.com"
+ ],
+ [
+  "flyio",
+  "Fly.io Machines API",
+  "https://docs.machines.dev/spec/openapi3.json",
+  "https://api.machines.dev"
+ ],
+ [
+  "neon",
+  "Neon API v2",
+  "https://neon.tech/api_spec/release/v2.json",
+  "https://console.neon.tech"
+ ],
+ [
+  "sentry",
+  "Sentry API",
+  "https://raw.githubusercontent.com/getsentry/sentry-api-schema/main/openapi-derefed.json",
+  "https://sentry.io"
+ ],
+ [
+  "intercom",
+  "Intercom API 2.11",
+  "https://raw.githubusercontent.com/intercom/Intercom-OpenAPI/main/descriptions/2.11/api.intercom.io.yaml",
+  "https://api.intercom.io"
+ ],
+ [
+  "xero",
+  "Xero Accounting API",
+  "https://raw.githubusercontent.com/XeroAPI/Xero-OpenAPI/master/xero_accounting.yaml",
+  "https://api.xero.com"
+ ],
+ [
+  "launchdarkly",
+  "LaunchDarkly REST API",
+  "https://app.launchdarkly.com/api/v2/openapi.json",
+  "https://app.launchdarkly.com"
+ ],
+ [
+  "figma",
+  "Figma REST API",
+  "https://raw.githubusercontent.com/figma/rest-api-spec/main/openapi/openapi.yaml",
+  "https://api.figma.com"
+ ],
+ [
+  "clerk",
+  "Clerk Backend API",
+  "https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/2025-11-10.yml",
+  "https://api.clerk.com"
+ ],
+ [
+  "mailchimp",
+  "Mailchimp Marketing API",
+  "https://api.mailchimp.com/schema/3.0/Swagger.json?expand",
+  "https://us1.api.mailchimp.com"
+ ],
+ [
+  "netlify",
+  "Netlify API",
+  "https://open-api.netlify.com/swagger.json",
+  "https://api.netlify.com"
+ ],
+ [
+  "cloudflare",
+  "Cloudflare API",
+  "https://raw.githubusercontent.com/cloudflare/api-schemas/main/openapi.json",
+  "https://api.cloudflare.com"
+ ],
+ [
+  "slack",
+  "Slack Web API",
+  "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json",
+  "https://slack.com"
+ ],
+ [
+  "mistral",
+  "Mistral AI API",
+  "https://docs.mistral.ai/openapi.yaml",
+  "https://api.mistral.ai"
+ ],
+ [
+  "render",
+  "Render Public API",
+  "https://api-docs.render.com/openapi/render-public-api-1.json",
+  "https://api.render.com"
+ ],
+ [
+  "kubernetes",
+  "Kubernetes API",
+  "https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json",
+  null
+ ],
+ [
+  "hetzner",
+  "Hetzner Cloud API",
+  "https://docs.hetzner.cloud/cloud.spec.json",
+  "https://api.hetzner.cloud"
+ ],
+ [
+  "mux",
+  "Mux Video API",
+  "https://raw.githubusercontent.com/muxinc/openapi-specification/master/swagger.json",
+  "https://api.mux.com"
+ ]
+]

@@ -1,4 +1,5 @@
 import { badgeSvg, formatReport, scoreSource, shieldsEndpoint } from "./index.js";
+import { handleEvent, handleWaitlist, hostOf, logEvent } from "./cta.js";
 const MAX_SPEC_CHARS = 2_000_000;
 const TIMEOUT_MS = 20000;
 export default {
@@ -13,11 +14,15 @@ export async function handleRequest(request, env = {}) {
         return cors(new Response(null, { status: 204 }));
     try {
         if (path === "/api/score" && (request.method === "POST" || request.method === "GET")) {
-            return cors(await handleScore(request, url));
+            return cors(await handleScore(request, url, env));
         }
         if (path === "/badge" || path === "/badge.json" || path === "/badge.svg") {
-            return cors(await handleBadge(request, url, path));
+            return cors(await handleBadge(request, url, path, env));
         }
+        if (path === "/api/event" && request.method === "POST")
+            return handleEvent(request, env);
+        if (path === "/api/waitlist" && request.method === "POST")
+            return handleWaitlist(request, env);
     }
     catch (e) {
         console.error("agent-ready-score error", { path, message: e.message });
@@ -33,15 +38,22 @@ export async function handleRequest(request, env = {}) {
     }
     return new Response("Not found", { status: 404 });
 }
-async function handleScore(request, url) {
+async function handleScore(request, url, env = {}) {
     const input = await readInput(request, url);
     if (!input.ok)
         return json({ ok: false, error: input.error }, 400);
     const result = await scoreSource(input.value, { timeoutMs: TIMEOUT_MS });
     const status = result.ok ? 200 : 400;
+    logEvent(env, {
+        event: result.ok ? "scan_completed" : "scan_failed",
+        path: "/api/score",
+        label: input.value.url ? hostOf(input.value.url) : "pasted-spec",
+        value: result.ok ? result.score : 0,
+        server: true,
+    });
     return json(result, status);
 }
-async function handleBadge(request, url, path) {
+async function handleBadge(request, url, path, env = {}) {
     const wantJson = path.endsWith(".json") ||
         url.searchParams.get("format") === "json" ||
         (request.headers.get("accept") || "").includes("application/json");
@@ -58,6 +70,8 @@ async function handleBadge(request, url, path) {
     const result = await scoreSource(input.value, { timeoutMs: TIMEOUT_MS });
     if (!result.ok)
         return json(result, 400);
+    // README badge loop: label is the spec host, so distinct adopters can be counted.
+    logEvent(env, { event: "badge_served", path, label: hostOf(input.value.url), value: result.score, server: true });
     return badgeResponse(result.score, wantJson);
 }
 function badgeResponse(score, wantJson) {

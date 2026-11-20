@@ -3,8 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Agent-Ready Score — is your API ready for agents?</title>
-  <meta name="description" content="Paste an OpenAPI spec or an API URL and get a 0-100 score: discoverability, docs, predictable errors, auth, and MCP-wrappability. Free to use. Pro coming soon.">
+  <title>Agent-Ready Score: is your API ready for AI agents? Free OpenAPI checker</title>
+  <meta name="description" content="Paste an OpenAPI spec or URL and get a free 0-100 agent-readiness score: llms.txt and discovery, docs, RFC 9457 errors, auth, and MCP tool-list token cost. CLI, GitHub Action and README badge. Pro coming soon.">
+  <link rel="canonical" href="https://agent-ready-score.omer20sh.workers.dev/">
+  <meta property="og:title" content="Agent-Ready Score: is your API ready for AI agents?">
+  <meta property="og:description" content="Free, open-source 0-100 score for any OpenAPI spec, with a fix for every failed check. Median of 34 popular APIs: 63/100.">
+  <meta property="og:url" content="https://agent-ready-score.omer20sh.workers.dev/">
+  <link rel="alternate" type="text/plain" href="https://agent-ready-score.omer20sh.workers.dev/llms.txt" title="llms.txt">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"SoftwareApplication","name":"Agent-Ready Score","applicationCategory":"DeveloperApplication","operatingSystem":"Web, Node.js 20+, GitHub Actions","url":"https://agent-ready-score.omer20sh.workers.dev/","codeRepository":"https://github.com/Om3rr/agent-ready-score","license":"https://opensource.org/licenses/MIT","description":"Scores how ready an API is for AI agents from its OpenAPI document: discoverability, docs quality, predictable errors, auth and identity, and MCP-wrappability.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free web scan, CLI, GitHub Action and badge. Pro is coming soon."}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What makes an API agent-ready?","acceptedAnswer":{"@type":"Answer","text":"An agent has to find the API, understand each operation, parse its errors, authenticate with scoped credentials and fit its tools into a context window. Agent-Ready Score checks llms.txt and /.well-known discovery, summaries and examples, RFC 9457 problem+json errors, OAuth scopes, unique operationIds and the token cost of a generated MCP tool list."}},{"@type":"Question","name":"Is Agent-Ready Score free?","acceptedAnswer":{"@type":"Answer","text":"Yes. The web scan, CLI, GitHub Action and README badge are free and open source (MIT). Pro is coming soon and has no price or checkout today."}},{"@type":"Question","name":"How do popular APIs score?","acceptedAnswer":{"@type":"Answer","text":"On 20 November 2026 the median across 34 well-known public APIs was 63/100. Only 1 scored 80 or more. See the public leaderboard at https://agent-ready-score.omer20sh.workers.dev/scores/."}},{"@type":"Question","name":"Does it store my spec?","acceptedAnswer":{"@type":"Answer","text":"No. The spec is scored in memory and not stored. Anonymous CTA events (no IP, no email) are counted to improve the tool."}}]}]}</script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%233fb950'/></svg>">
   <style>
     :root { --bg:#0e1116; --card:#161b22; --ink:#e6edf3; --muted:#8b949e; --line:#30363d; --green:#3fb950; --yellow:#d29922; --red:#e5534b; --accent:#58a6ff; }
@@ -43,7 +49,8 @@
   <header>
     <h1>Agent-Ready Score</h1>
     <p class="lede">Paste an OpenAPI spec or an API / docs URL. Get a 0–100 score, a category breakdown, and a concrete fix for every failed check.</p>
-    <span class="soon">Free to use · Pro coming soon</span>
+    <span class="soon">Free to use · open source · Pro coming soon</span>
+    <p class="hint">How do Stripe, GitHub, OpenAI and Slack score? <a href="/scores/" data-track="score_page_view" data-track-label="hero">See the leaderboard of 34 public APIs</a> (median 63/100).</p>
   </header>
   <main>
     <form class="card" id="form">
@@ -59,11 +66,48 @@
       <p class="err" id="err" hidden></p>
     </form>
     <section id="result" class="card" style="margin-top:20px"></section>
+
+    <section class="card" id="ci" style="margin-top:20px">
+      <h2 style="margin-top:0">Keep the score in CI</h2>
+      <p class="hint">Fail the pull request when the score drops, and publish a badge. Free, no account.</p>
+      <pre id="actionYaml" style="background:#0d1117;padding:12px;border-radius:8px;overflow:auto">- uses: Om3rr/agent-ready-score@v0.1.0
+  with:
+    spec: ./openapi.yaml
+    fail-under: '70'
+    badge-path: agent-ready-badge.json</pre>
+      <div class="row">
+        <a class="btn" style="background:var(--accent);color:#04111f;border-radius:8px;padding:10px 18px;font-weight:700;text-decoration:none" href="https://github.com/Om3rr/agent-ready-score?utm_source=agent-ready-score&amp;utm_medium=landing&amp;utm_campaign=ci&amp;utm_content=action#github-action" data-track="action_install_click" data-track-label="landing-ci">Add the GitHub Action</a>
+        <button type="button" id="copyCli" data-track="cli_copy" data-track-label="landing">Copy CLI command</button>
+      </div>
+    </section>
+
+    <section class="card" id="pro" style="margin-top:20px">
+      <h2 style="margin-top:0">Pro: coming soon</h2>
+      <p class="hint">Planned: score history and drift alerts, private specs, org-wide CI, and auto-generated llms.txt and error schemas. No price and no checkout yet. Join the free waitlist and we will email you once when it opens.</p>
+      <form id="wl" class="row" style="margin-top:0">
+        <input id="wlEmail" type="email" required placeholder="you@company.com" autocomplete="email" style="flex:1;min-width:220px;background:#0d1117;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit">
+        <button type="submit">Join the Pro waitlist</button>
+      </form>
+      <p class="hint" id="wlNote">One email when Pro opens. No spam, unsubscribe anytime.</p>
+    </section>
+
+    <section id="faq" style="margin-top:28px">
+      <h2>FAQ</h2>
+      <h3>What makes an API agent-ready?</h3>
+      <p class="hint">An agent has to find the API, understand each operation, parse its errors, authenticate with scoped credentials and fit its tools into a context window. We check llms.txt and /.well-known discovery, summaries and examples, RFC 9457 problem+json errors, OAuth scopes, unique operationIds, and the token cost of a generated MCP tool list.</p>
+      <h3>How do popular APIs score?</h3>
+      <p class="hint">On 20 November 2026 the median across 34 well-known public APIs was 63/100, and only 1 scored 80 or more. <a href="/scores/">See every score and its fixes</a>.</p>
+      <h3>Is it free? Does it store my spec?</h3>
+      <p class="hint">The web scan, CLI, GitHub Action and badge are free and MIT-licensed. The spec is scored in memory and not stored. We count anonymous button clicks (no IP, no email) to see which features matter.</p>
+      <h3>How is this different from other agent-readiness checkers?</h3>
+      <p class="hint">It is open source, it runs in your CI as a GitHub Action with a fail-under gate, and it measures what your API would cost in tokens as an MCP tool list. Other tools score docs sites or use their own network data; use whichever fits.</p>
+    </section>
   </main>
   <footer>
     <p>Checks: discoverability (llms.txt, OpenAPI, well-known, robots), docs quality, predictable errors, auth &amp; identity, and MCP-wrappability. Use the CLI or GitHub Action in CI, and embed a README badge.</p>
-    <p>Pro coming soon. This free tool does not include history, teams, or paid checkout.</p>
+    <p>Pro coming soon. This free tool does not include history, teams, or paid checkout. <a href="/scores/">API leaderboard</a> · <a href="https://github.com/Om3rr/agent-ready-score" data-track="outbound_repo_click" data-track-label="footer">Source (MIT)</a> · <a href="/llms.txt">llms.txt</a></p>
   </footer>
+  <script src="/t.js" data-product="agent-ready-score"></script>
   <script>
     const form = document.getElementById('form');
     const result = document.getElementById('result');
@@ -77,6 +121,7 @@
       const spec = document.getElementById('spec').value.trim();
       if (!url && !spec) { err.textContent = 'Paste a spec or enter a URL.'; err.hidden = false; return; }
       go.disabled = true; go.textContent = 'Scoring…';
+      window.track && track('scan_started', { label: spec ? 'pasted-spec' : 'url' });
       try {
         const body = spec ? { spec } : { url };
         const res = await fetch('/api/score', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
@@ -107,10 +152,25 @@
         <p class="hint">Generated tool list: ${r.toolList.operations} operations ≈ ${r.toolList.tokens} tokens</p>
         <h2>Fixes</h2>
         ${fixes}
-        <p class="hint" style="margin-top:16px">Badge: <code>https://this-host/badge?url=YOUR_SPEC_URL</code> · Shields endpoint: add <code>&amp;format=json</code></p>
+        ${r.source && /^https?:/.test(r.source) ? `<h2>Add the badge</h2><pre id="badgeMd" style="white-space:pre-wrap;word-break:break-all;background:#0d1117;padding:10px;border-radius:8px">[![agent-ready](${location.origin}/badge?url=${encodeURIComponent(r.source)})](${location.origin}/?url=${encodeURIComponent(r.source)}&utm_source=badge&utm_medium=readme&utm_campaign=badge-loop)</pre><button type="button" id="copyBadge">Copy badge markdown</button>` : `<p class="hint" style="margin-top:16px">Badge: score a public spec URL to get a README badge.</p>`}
+        <p class="hint" style="margin-top:12px">Next: <a href="#ci" data-track="action_install_click" data-track-label="result">gate this score in CI</a> · <a href="#pro" data-track="waitlist_view" data-track-label="result">Pro waitlist</a></p>
       `;
       result.style.display = 'block';
+      const cb = document.getElementById('copyBadge');
+      if (cb) cb.onclick = () => { navigator.clipboard.writeText(document.getElementById('badgeMd').textContent); cb.textContent = 'Copied'; window.track && track('badge_copied', { label: 'landing' }); };
     }
+    document.getElementById('copyCli').onclick = (e) => { navigator.clipboard.writeText('npx agent-ready-score ./openapi.yaml --fail-under 70'); e.target.textContent = 'Copied: npx agent-ready-score ./openapi.yaml'; };
+    { const q = new URLSearchParams(location.search).get('url'); if (q) { document.getElementById('url').value = q; form.requestSubmit(); } }
+    document.getElementById('wl').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const note = document.getElementById('wlNote');
+      window.track && track('waitlist_submit', { label: 'landing' });
+      try {
+        const res = await fetch('/api/waitlist', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: document.getElementById('wlEmail').value, plan: 'pro', ...(window.utmParams ? utmParams() : {}) }) });
+        const d = await res.json();
+        note.textContent = d.ok ? "You're on the list. One email when Pro opens." : (d.error || 'Could not join right now.');
+      } catch { note.textContent = 'Could not join right now.'; }
+    });
   </script>
 </body>
 </html>
