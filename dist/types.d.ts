@@ -75,6 +75,8 @@ export interface DiscoveryResult {
     openapiFound: boolean;
     /** True when origin probes actually ran. False means site checks should be skipped, not failed. */
     probed: boolean;
+    /** A valid /llms.txt found on the API's docs site (docs.<domain>, the bare domain, externalDocs), when the origin has none. */
+    docsLlms?: DiscoveryProbe | null;
 }
 export interface FetchLike {
     (input: string | URL, init?: RequestInit): Promise<Response>;

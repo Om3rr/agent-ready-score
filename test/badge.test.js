@@ -49,3 +49,14 @@ describe("badge", () => {
     assert.doesNotMatch(svg, /foo&<>"/);
   });
 });
+
+describe("badge contrast", () => {
+  it("uses dark score text on green and yellow fills, white on red", async () => {
+    const { badgeSvg: svg, scoreTextHex } = await import("../dist/index.js");
+    assert.equal(scoreTextHex(95), "#0d1117");
+    assert.equal(scoreTextHex(82), "#0d1117");
+    assert.equal(scoreTextHex(40), "#ffffff");
+    assert.match(svg(82), /fill="#0d1117" font-weight="bold">82</);
+    assert.match(svg(40), /fill="#ffffff" font-weight="bold">40</);
+  });
+});

@@ -21,7 +21,7 @@ export function scoreHex(score: number | null | undefined): string {
   if (score == null || Number.isNaN(score)) return "#9f9f9f";
   if (score >= 90) return "#3fb950";
   if (score >= 70) return "#d29922";
-  return "#e5534b";
+  return "#c93a33";
 }
 
 export function shieldsEndpoint(score: number | null | undefined, label = "agent-ready"): ShieldsEndpoint {
@@ -34,6 +34,12 @@ export function shieldsEndpoint(score: number | null | undefined, label = "agent
   };
 }
 
+/** Score text colour with WCAG AA contrast on the fill: dark on green/yellow, white on red/grey. */
+export function scoreTextHex(score: number | null | undefined): string {
+  if (score == null || Number.isNaN(score)) return "#ffffff";
+  return score >= 70 ? "#0d1117" : "#ffffff";
+}
+
 export function badgeSvg(score: number | null | undefined, label = "agent-ready"): string {
   const s = score == null || Number.isNaN(score) ? "n/a" : String(Math.round(score));
   const color = scoreHex(score);
@@ -43,5 +49,5 @@ export function badgeSvg(score: number | null | undefined, label = "agent-ready"
   const lx = Math.round(lw);
   const l = escapeXml(label);
   const msg = escapeXml(s);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="20" role="img" aria-label="${l}: ${msg}"><title>${l}: ${msg}</title><linearGradient id="g" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="r"><rect width="${w}" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#r)"><rect width="${lx}" height="20" fill="#555"/><rect x="${lx}" width="${Math.round(rw)}" height="20" fill="${color}"/><rect width="${w}" height="20" fill="url(#g)"/></g><g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11"><text x="${lx / 2}" y="14">${l}</text><text x="${lx + rw / 2}" y="14">${msg}</text></g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="20" role="img" aria-label="${l}: ${msg}"><title>${l}: ${msg}</title><linearGradient id="g" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="r"><rect width="${w}" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#r)"><rect width="${lx}" height="20" fill="#555"/><rect x="${lx}" width="${Math.round(rw)}" height="20" fill="${color}"/><rect width="${w}" height="20" fill="url(#g)"/></g><g text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11"><text x="${lx / 2}" y="14" fill="#fff">${l}</text><text x="${lx + rw / 2}" y="14" fill="${scoreTextHex(score)}" font-weight="bold">${msg}</text></g></svg>`;
 }

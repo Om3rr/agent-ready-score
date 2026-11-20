@@ -1,11 +1,11 @@
 import { originOf, parseSpec, serverOrigin, SpecParseError } from "./openapi.js";
-import { DEFAULT_USER_AGENT, emptyDiscovery, loadSpecFromUrl, probeOrigin, } from "./discover.js";
+import { DEFAULT_USER_AGENT, emptyDiscovery, loadSpecFromUrl, probeOrigin, isLlmsTxt, probeOf, probeDocsLlms, docsSiteCandidates, } from "./discover.js";
 import { scoreDocument } from "./score.js";
 import { isHttpUrl } from "./escape.js";
 export { parseSpec, SpecParseError, operations, specTitle, specVersion } from "./openapi.js";
 export { scoreDocument, formatReport, categoryScore, VERSION, CATEGORY_META } from "./score.js";
 export { escapeHtml, escapeXml, isHttpUrl } from "./escape.js";
-export { shieldsEndpoint, badgeSvg, scoreColor, scoreHex } from "./badge.js";
+export { shieldsEndpoint, badgeSvg, scoreColor, scoreHex, scoreTextHex } from "./badge.js";
 export { toolListCost, estimateTokens } from "./tokens.js";
 export { checkDiscoverability } from "./checks/discoverability.js";
 export { checkDocs } from "./checks/docs.js";
@@ -69,6 +69,9 @@ export async function scoreSource(input, opts = {}) {
                     probed: true,
                     probes: await probeOrigin(origin, fetchImpl, { timeoutMs, userAgent }),
                 };
+                if (!isLlmsTxt(probeOf(discovery.probes, "/llms.txt"))) {
+                    discovery.docsLlms = await probeDocsLlms(docsSiteCandidates(origin, doc), fetchImpl, { timeoutMs, userAgent }).catch(() => null);
+                }
             }
             catch {
                 // Probes are best-effort; the spec itself is enough to score the other categories.

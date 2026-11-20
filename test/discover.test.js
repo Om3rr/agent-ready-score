@@ -78,3 +78,31 @@ describe("checkDiscoverability", () => {
     for (const c of checks) assert.equal(c.status, "pass", c.id + " " + c.title);
   });
 });
+
+describe("docs-site llms.txt", () => {
+  it("derives docs-site candidates from the API host and spec links, skipping code hosts", async () => {
+    const { docsSiteCandidates, rootDomain } = await import("../dist/discover.js");
+    assert.equal(rootDomain("api.stripe.com"), "stripe.com");
+    assert.equal(rootDomain("api.example.co.uk"), "example.co.uk");
+    const c = docsSiteCandidates("https://api.stripe.com", { openapi: "3.0.0", info: { title: "t", version: "1" }, paths: {} });
+    assert.deepEqual(c.slice(0, 2), ["https://docs.stripe.com", "https://stripe.com"]);
+    assert.deepEqual(docsSiteCandidates("https://raw.githubusercontent.com", { openapi: "3.0.0", info: { title: "t", version: "1" }, paths: {} }), []);
+    const fromServers = docsSiteCandidates("https://raw.githubusercontent.com", { openapi: "3.0.0", info: { title: "t", version: "1" }, servers: [{ url: "https://api.stripe.com/" }], paths: {} });
+    assert.equal(fromServers[0], "https://docs.stripe.com");
+  });
+
+  it("credits an llms.txt on the docs site when the API host has none", async () => {
+    const { scoreSource } = await import("../dist/index.js");
+    const spec = JSON.stringify({ openapi: "3.1.0", info: { title: "Ex", version: "1" }, servers: [{ url: "https://api.example.com" }], paths: { "/a": { get: { operationId: "a", responses: { 200: { description: "ok" } } } } } });
+    const fetchImpl = async (url) => {
+      if (url === "https://docs.example.com/llms.txt") return new Response("# Example docs\n> Agents start here", { headers: { "content-type": "text/markdown" } });
+      return new Response("not found", { status: 404, headers: { "content-type": "text/plain" } });
+    };
+    const r = await scoreSource({ specText: spec }, { fetch: fetchImpl, timeoutMs: 2000 });
+    assert.equal(r.ok, true);
+    const llms = r.categories.flatMap((c) => c.checks).find((c) => c.id === "discover.llms_txt");
+    assert.equal(llms.status, "pass");
+    assert.match(llms.title, /docs site/);
+    assert.match(llms.detail, /docs\.example\.com\/llms\.txt/);
+  });
+});

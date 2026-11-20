@@ -38,3 +38,15 @@ export declare function isUsableTextFile(probe: DiscoveryProbe | undefined): boo
 export declare function isLlmsTxt(probe: DiscoveryProbe | undefined): boolean;
 export declare const AI_CRAWLER_TOKENS: string[];
 export declare function robotsMentionsAi(snippetText: string): boolean;
+/** Registrable domain, e.g. api.stripe.com -> stripe.com, api.example.co.uk -> example.co.uk. */
+export declare function rootDomain(host: string): string | null;
+/**
+ * Where an API's docs site (and its llms.txt) most likely lives: externalDocs and contact URLs in the spec,
+ * then docs., developer(s). and the bare registrable domain of the API host. Never the probed origin itself.
+ */
+export declare function docsSiteCandidates(origin: string | null, doc?: OpenAPIDoc | null): string[];
+/** Look for /llms.txt on the API's docs site. Returns the first valid probe, or null. */
+export declare function probeDocsLlms(candidates: string[], fetchImpl: FetchLike, opts: {
+    timeoutMs: number;
+    userAgent: string;
+}): Promise<DiscoveryProbe | null>;

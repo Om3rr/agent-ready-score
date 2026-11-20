@@ -7728,6 +7728,50 @@ function robotsMentionsAi(snippetText) {
   const s = snippetText.toLowerCase();
   return AI_CRAWLER_TOKENS.some((t) => s.includes(t));
 }
+var SHARED_HOSTS = ["github.com", "githubusercontent.com", "gitlab.com", "bitbucket.org", "githack.com", "jsdelivr.net", "unpkg.com", "amazonaws.com", "cloudfront.net", "workers.dev", "pages.dev", "vercel.app", "netlify.app", "herokuapp.com", "localhost"];
+var TWO_PART_SUFFIX = /^(co|com|org|net|ac|gov|edu)\.[a-z]{2}$/;
+function rootDomain(host) {
+  const h = host.toLowerCase().replace(/\.$/, "");
+  if (!h.includes(".") || /^[\d.]+$/.test(h) || h.includes(":")) return null;
+  const parts = h.split(".");
+  const n = TWO_PART_SUFFIX.test(parts.slice(-2).join(".")) && parts.length >= 3 ? 3 : 2;
+  return parts.slice(-n).join(".");
+}
+function docsSiteCandidates(origin, doc) {
+  const out2 = [];
+  const add = (o) => {
+    if (!o || o === origin || out2.includes(o)) return;
+    const host = new URL(o).hostname;
+    if (SHARED_HOSTS.some((s) => host === s || host.endsWith(`.${s}`))) return;
+    out2.push(o);
+  };
+  const fromDoc = [doc?.externalDocs?.url, doc?.info?.contact?.url].filter((x) => typeof x === "string");
+  for (const u of fromDoc) add(originOf(u));
+  const hosts = [origin, doc ? serverOrigin(doc) : null].filter((x) => !!x).map((o) => new URL(o).hostname);
+  for (const host of hosts) {
+    if (SHARED_HOSTS.some((s) => host === s || host.endsWith(`.${s}`))) continue;
+    const root = rootDomain(host);
+    if (!root) continue;
+    for (const sub of ["docs.", "", "developer.", "developers."]) add(`https://${sub}${root}`);
+  }
+  return out2.slice(0, 6);
+}
+async function probeDocsLlms(candidates, fetchImpl, opts) {
+  if (!candidates.length) return null;
+  const timeoutMs = Math.min(opts.timeoutMs, 6e3);
+  const probes = await Promise.all(
+    candidates.map(async (base) => {
+      const target = `${base}/llms.txt`;
+      try {
+        const r = await fetchText(target, fetchImpl, { ...opts, timeoutMs, accept: "text/plain, text/markdown, */*" });
+        return { path: "/llms.txt", url: target, ok: r.ok, status: r.status, contentType: r.contentType, snippet: r.ok ? snippet(r.body, r.contentType) : "" };
+      } catch {
+        return null;
+      }
+    })
+  );
+  return probes.find((p) => p && isLlmsTxt(p)) || null;
+}
 
 // src/tokens.ts
 var CHARS_PER_TOKEN = 4;
@@ -7822,7 +7866,9 @@ function checkDiscoverability(discovery) {
     openapi.title = "OpenAPI document found, but not advertised on the origin";
     openapi.fix = `Also serve the spec at ${origin}/openapi.json or ${origin}/.well-known/openapi.json so agents can find it without a bookmark.`;
   }
-  const llms = probeOf(probes, "/llms.txt");
+  const originLlms = probeOf(probes, "/llms.txt");
+  const docsLlms = !isLlmsTxt(originLlms) && isLlmsTxt(discovery.docsLlms ?? void 0) ? discovery.docsLlms ?? void 0 : void 0;
+  const llms = docsLlms || originLlms;
   const llmsOk = isLlmsTxt(llms);
   const llmsCheck = skipped ? skip("discover.llms_txt", 25, "No origin to probe for /llms.txt", "Pass an API or docs URL, or set servers[0].url in the spec to a public origin, then publish /llms.txt.") : {
     id: "discover.llms_txt",
@@ -7830,8 +7876,8 @@ function checkDiscoverability(discovery) {
     status: llmsOk ? "pass" : "fail",
     score: llmsOk ? 1 : 0,
     weight: 25,
-    title: llmsOk ? "llms.txt is published" : "No llms.txt at the origin",
-    detail: llmsOk && llms ? `${llms.url} \u2014 ${llms.snippet.slice(0, 140)}` : origin ? `Looked at ${origin}/llms.txt` : "",
+    title: llmsOk ? docsLlms ? "llms.txt is published on the docs site" : "llms.txt is published" : "No llms.txt on the API host or docs site",
+    detail: llmsOk && llms ? `${llms.url} \u2014 ${llms.snippet.slice(0, 140)}` : origin ? `Looked at ${origin}/llms.txt and the likely docs sites.` : "",
     fix: llmsOk ? "" : `Publish a short curated map at ${origin}/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs.`
   };
   const wellKnownHits = probes.filter((p) => p.ok && WELL_KNOWN_PATHS.includes(p.path));
@@ -8489,6 +8535,9 @@ async function scoreSource(input, opts = {}) {
           probed: true,
           probes: await probeOrigin(origin, fetchImpl, { timeoutMs, userAgent })
         };
+        if (!isLlmsTxt(probeOf(discovery.probes, "/llms.txt"))) {
+          discovery.docsLlms = await probeDocsLlms(docsSiteCandidates(origin, doc), fetchImpl, { timeoutMs, userAgent }).catch(() => null);
+        }
       } catch {
         discovery = { ...discovery, probed: true };
       }
