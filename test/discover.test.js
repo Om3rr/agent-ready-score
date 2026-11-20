@@ -46,6 +46,7 @@ describe("checkDiscoverability", () => {
     const checks = checkDiscoverability(emptyDiscovery({
       origin: "https://api.example",
       openapiFound: true,
+      probed: true,
       specSource: "url",
       specUrl: "https://api.example/secret-spec.json",
       probes: [

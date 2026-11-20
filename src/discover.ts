@@ -197,6 +197,7 @@ export function emptyDiscovery(partial: Partial<DiscoveryResult> = {}): Discover
     specSource: "text",
     specUrl: null,
     openapiFound: false,
+    probed: false,
     ...partial,
   };
 }

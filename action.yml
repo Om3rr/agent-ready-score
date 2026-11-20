@@ -63,7 +63,7 @@ runs:
   steps:
     - id: scan
       shell: bash
-      run: node "$GITHUB_ACTION_PATH/dist/action.js"
+      run: node "$GITHUB_ACTION_PATH/dist/action.bundle.cjs"
       env:
         INPUT_SPEC: ${{ inputs.spec }}
         INPUT_URL: ${{ inputs.url }}

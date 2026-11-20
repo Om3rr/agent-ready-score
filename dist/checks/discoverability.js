@@ -2,7 +2,7 @@ import { isLlmsTxt, isUsableTextFile, probeOf, robotsMentionsAi, WELL_KNOWN_PATH
 export function checkDiscoverability(discovery) {
     const origin = discovery.origin;
     const probes = discovery.probes;
-    const skipped = !origin;
+    const skipped = !origin || discovery.probed === false;
     const openapi = {
         id: "discover.openapi",
         category: "discoverability",

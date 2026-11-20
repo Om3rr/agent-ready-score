@@ -73,6 +73,8 @@ export interface DiscoveryResult {
     specSource: "url" | "file" | "text" | "discovered";
     specUrl: string | null;
     openapiFound: boolean;
+    /** True when origin probes actually ran. False means site checks should be skipped, not failed. */
+    probed: boolean;
 }
 export interface FetchLike {
     (input: string | URL, init?: RequestInit): Promise<Response>;

@@ -75,16 +75,19 @@ export async function scoreSource(input: ScoreInput, opts: ScoreOptions = {}): P
       specSource,
       specUrl,
       openapiFound: true,
+      probed: false,
     });
 
     if (!opts.skipDiscovery && origin) {
       try {
         discovery = {
           ...discovery,
+          probed: true,
           probes: await probeOrigin(origin, fetchImpl, { timeoutMs, userAgent }),
         };
       } catch {
         // Probes are best-effort; the spec itself is enough to score the other categories.
+        discovery = { ...discovery, probed: true };
       }
     }
 

@@ -228,6 +228,18 @@ describe("scoreSource", () => {
     assert.equal(r.ok, false);
   });
 
+  it("skipDiscovery skips origin probes instead of failing them", async () => {
+    const r = await scoreSource(
+      { specText: fixture("good.yaml"), sourceLabel: "good.yaml" },
+      { skipDiscovery: true },
+    );
+    assert.equal(r.ok, true);
+    const disc = r.categories.find((c) => c.id === "discoverability");
+    assert.ok(disc.checks.some((c) => c.status === "skip"));
+    assert.equal(disc.checks.find((c) => c.id === "discover.llms_txt").status, "skip");
+    assert.ok(r.score >= 90, `expected >= 90 with discovery skipped, got ${r.score}`);
+  });
+
   it("fetches a spec URL and can skip discovery", async () => {
     const spec = fixture("good.yaml");
     const fetchImpl = mockFetch({

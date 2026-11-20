@@ -81,7 +81,7 @@ export async function runAction(env: NodeJS.ProcessEnv = process.env): Promise<n
   return 0;
 }
 
-const isMain = process.argv[1] && process.argv[1].endsWith("action.js");
+const isMain = Boolean(process.argv[1] && /action(?:\.bundle)?\.(?:js|cjs)$/.test(process.argv[1]));
 if (isMain) {
   runAction().then((code) => process.exit(code)).catch((e) => {
     console.error(e);
