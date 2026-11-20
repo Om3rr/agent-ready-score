@@ -1,6 +1,8 @@
 import { badgeSvg, formatReport, scoreSource, shieldsEndpoint } from "./index.js";
+import { isHttpUrl } from "./escape.js";
 import { bucketRoute, handleStats, scheduleTrack } from "./metrics.js";
 const WORKER_NAME = "agent-ready-score";
+const URL_ERROR = "Only absolute http(s) URLs are supported.";
 const MAX_SPEC_CHARS = 2_000_000;
 const TIMEOUT_MS = 20000;
 export default {
@@ -57,6 +59,7 @@ export async function handleRequest(request, env = {}, ctx) {
         if (path === "/api/score" || path.startsWith("/badge"))
             scan = "fail";
     }
+    response = withSecurityHeaders(response);
     scheduleTrack(ctx, env, request, { worker: WORKER_NAME, route: bucketRoute(path), scan, badge });
     return response;
 }
@@ -95,6 +98,8 @@ function badgeResponse(score, wantJson) {
         headers: {
             "content-type": "image/svg+xml; charset=utf-8",
             "cache-control": "public, max-age=300",
+            "x-content-type-options": "nosniff",
+            "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
         },
     });
 }
@@ -103,6 +108,8 @@ async function readInput(request, url) {
         const target = url.searchParams.get("url") || url.searchParams.get("spec");
         if (!target)
             return { ok: false, error: "Provide ?url= to an OpenAPI document or API/docs site." };
+        if (!isHttpUrl(target))
+            return { ok: false, error: URL_ERROR };
         return { ok: true, value: { url: target } };
     }
     const ct = request.headers.get("content-type") || "";
@@ -120,8 +127,11 @@ async function readInput(request, url) {
         }
         if (specText && specText.trim())
             return { ok: true, value: { specText, sourceLabel: "pasted spec" } };
-        if (body.url)
-            return { ok: true, value: { url: body.url } };
+        if (body.url) {
+            if (!isHttpUrl(body.url))
+                return { ok: false, error: URL_ERROR };
+            return { ok: true, value: { url: String(body.url).trim() } };
+        }
         return { ok: false, error: "JSON body must include `url` or `spec`." };
     }
     const text = await request.text();
@@ -137,8 +147,18 @@ async function readInput(request, url) {
 function json(data, status = 200) {
     return new Response(JSON.stringify(data), {
         status,
-        headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+        headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", "x-content-type-options": "nosniff" },
     });
+}
+function withSecurityHeaders(res) {
+    const headers = new Headers(res.headers);
+    if (!headers.has("x-content-type-options"))
+        headers.set("x-content-type-options", "nosniff");
+    if (/text\/html/i.test(headers.get("content-type") || "")) {
+        headers.set("referrer-policy", "strict-origin-when-cross-origin");
+        headers.set("x-frame-options", "DENY");
+    }
+    return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
 }
 function cors(res) {
     const headers = new Headers(res.headers);

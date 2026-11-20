@@ -1,8 +1,10 @@
 import { originOf, parseSpec, serverOrigin, SpecParseError } from "./openapi.js";
 import { DEFAULT_USER_AGENT, emptyDiscovery, loadSpecFromUrl, probeOrigin, } from "./discover.js";
 import { scoreDocument } from "./score.js";
+import { isHttpUrl } from "./escape.js";
 export { parseSpec, SpecParseError, operations, specTitle, specVersion } from "./openapi.js";
 export { scoreDocument, formatReport, categoryScore, VERSION, CATEGORY_META } from "./score.js";
+export { escapeHtml, escapeXml, isHttpUrl } from "./escape.js";
 export { shieldsEndpoint, badgeSvg, scoreColor, scoreHex } from "./badge.js";
 export { toolListCost, estimateTokens } from "./tokens.js";
 export { checkDiscoverability } from "./checks/discoverability.js";
@@ -39,6 +41,9 @@ export async function scoreSource(input, opts = {}) {
             };
         }
         else if (input.url) {
+            if (!isHttpUrl(input.url)) {
+                return { ok: false, error: "Only http(s) URLs are supported." };
+            }
             const loaded = await loadSpecFromUrl(input.url, fetchImpl, { timeoutMs, userAgent });
             doc = loaded.doc;
             specUrl = loaded.url;

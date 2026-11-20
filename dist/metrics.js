@@ -1,4 +1,5 @@
 /** Privacy-preserving traffic counters for the studio Workers (D1 `studio-metrics`). */
+import { escapeHtml } from "./escape.js";
 export const WORKER_TZ = "Asia/Jerusalem";
 const BOT_RE = /bot|crawler|spider|crawling|slurp|bingpreview|facebookexternalhit|facebot|pingdom|uptimerobot|healthcheck|kube-probe|lighthouse|pagespeed|headlesschrome|whatsapp|telegram|discordbot|embedly|linkedinbot|twitterbot|applebot|yandex|duckduckbot|baiduspider|semrush|ahrefs|mj12bot|dotbot|gptbot|claudebot|chatgpt|amazonbot|bytespider|petalsearch|cf-health|cloudflare-traffic-manager|monitor|preview-block|statuscake|site24x7/i;
 const SKIP_ROUTES = new Set(["/api/health", "/favicon.ico", "/robots.txt", "/stats", "/stats.html", "/stats.json"]);
@@ -225,9 +226,7 @@ export function statsJsonResponse(data) {
         },
     });
 }
-function esc(s) {
-    return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] || c);
-}
+const esc = escapeHtml;
 export function statsHtmlResponse(data, title) {
     const dailyRows = data.daily
         .slice()

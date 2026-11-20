@@ -1,6 +1,7 @@
 import type { ScoreInput, ScoreOptions, ScoreResult } from "./types.js";
 export { parseSpec, SpecParseError, operations, specTitle, specVersion } from "./openapi.js";
 export { scoreDocument, formatReport, categoryScore, VERSION, CATEGORY_META } from "./score.js";
+export { escapeHtml, escapeXml, isHttpUrl } from "./escape.js";
 export { shieldsEndpoint, badgeSvg, scoreColor, scoreHex } from "./badge.js";
 export { toolListCost, estimateTokens } from "./tokens.js";
 export { checkDiscoverability } from "./checks/discoverability.js";
