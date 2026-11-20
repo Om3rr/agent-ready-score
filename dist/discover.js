@@ -173,6 +173,7 @@ export function emptyDiscovery(partial = {}) {
         specSource: "text",
         specUrl: null,
         openapiFound: false,
+        probed: false,
         ...partial,
     };
 }

@@ -11,7 +11,7 @@ import {
 export function checkDiscoverability(discovery: DiscoveryResult): CheckResult[] {
   const origin = discovery.origin;
   const probes = discovery.probes;
-  const skipped = !origin;
+  const skipped = !origin || discovery.probed === false;
 
   const openapi: CheckResult = {
     id: "discover.openapi",
