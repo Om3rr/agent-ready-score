@@ -80,3 +80,17 @@ it('landing: footer contact is a real mailto', () => {
   const html = readFileSync(new URL('../worker/public/index.html', import.meta.url), 'utf8');
   assert.match(html, /Contact: <a href="mailto:omer20sh@gmail\.com">omer20sh@gmail\.com<\/a>/);
 });
+
+describe('OG/meta', () => {
+  it('home and /scores/ pages have og:image and a large twitter card', () => {
+    const root = new URL('../worker/public/', import.meta.url).pathname;
+    for (const f of ['index.html', 'scores/index.html', 'scores/stripe/index.html']) {
+      const h = readFileSync(join(root, f), 'utf8');
+      assert.match(h, /property="og:image" content="https:\/\/agent-ready-score\.omer20sh\.workers\.dev\/og\.png"/, f);
+      assert.match(h, /name="twitter:card" content="summary_large_image"/, f);
+      assert.match(h, /property="og:title"/, f); assert.match(h, /rel="canonical"/, f);
+    }
+    const png = readFileSync(join(root, 'og.png'));
+    assert.equal(png.readUInt32BE(16), 1200); assert.equal(png.readUInt32BE(20), 630);
+  });
+});
