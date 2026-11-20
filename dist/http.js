@@ -1,6 +1,6 @@
 import { badgeSvg, formatReport, scoreSource, shieldsEndpoint } from "./index.js";
 import { isHttpUrl } from "./escape.js";
-import { bucketRoute, handleStats, scheduleTrack } from "./metrics.js";
+import { bucketRoute, handleEvent, handleStats, handleWaitlist, scheduleTrack } from "./metrics.js";
 const WORKER_NAME = "agent-ready-score";
 const URL_ERROR = "Only absolute http(s) URLs are supported.";
 const MAX_SPEC_CHARS = 2_000_000;
@@ -18,20 +18,29 @@ export async function handleRequest(request, env = {}, ctx) {
             return handleStats(env, WORKER_NAME, path === "/stats.json" ? "/stats" : path, "Agent-Ready Score");
         }
     }
+    if (path === "/api/event")
+        return handleEvent(request, env, WORKER_NAME);
+    if (path === "/api/waitlist")
+        return handleWaitlist(request, env, WORKER_NAME);
     if (request.method === "OPTIONS")
         return cors(new Response(null, { status: 204 }));
     let response;
     let scan = null;
     let badge = false;
+    let targetUrl;
     try {
         if (path === "/api/score" && (request.method === "POST" || request.method === "GET")) {
-            response = cors(await handleScore(request, url));
+            const scored = await handleScore(request, url);
+            response = cors(scored.response);
             scan = response.ok ? "success" : "fail";
+            targetUrl = scored.targetUrl;
         }
         else if (path === "/badge" || path === "/badge.json" || path === "/badge.svg") {
-            response = cors(await handleBadge(request, url, path));
+            const scored = await handleBadge(request, url, path);
+            response = cors(scored.response);
             badge = true;
-            if (url.searchParams.get("url") || url.searchParams.get("spec")) {
+            targetUrl = scored.targetUrl;
+            if (targetUrl || url.searchParams.get("url") || url.searchParams.get("spec")) {
                 scan = response.ok ? "success" : "fail";
             }
         }
@@ -60,16 +69,17 @@ export async function handleRequest(request, env = {}, ctx) {
             scan = "fail";
     }
     response = withSecurityHeaders(response);
-    scheduleTrack(ctx, env, request, { worker: WORKER_NAME, route: bucketRoute(path), scan, badge });
+    const events = scan ? ["scan_started"] : [];
+    scheduleTrack(ctx, env, request, { worker: WORKER_NAME, route: bucketRoute(path), scan, badge, targetUrl, events });
     return response;
 }
 async function handleScore(request, url) {
     const input = await readInput(request, url);
     if (!input.ok)
-        return json({ ok: false, error: input.error }, 400);
+        return { response: json({ ok: false, error: input.error }, 400) };
     const result = await scoreSource(input.value, { timeoutMs: TIMEOUT_MS });
     const status = result.ok ? 200 : 400;
-    return json(result, status);
+    return { response: json(result, status), targetUrl: input.value.url };
 }
 async function handleBadge(request, url, path) {
     const wantJson = path.endsWith(".json") ||
@@ -79,16 +89,16 @@ async function handleBadge(request, url, path) {
     if (scoreParam != null && scoreParam !== "") {
         const score = Number(scoreParam);
         if (Number.isNaN(score))
-            return json({ ok: false, error: "score must be a number" }, 400);
-        return badgeResponse(score, wantJson);
+            return { response: json({ ok: false, error: "score must be a number" }, 400) };
+        return { response: badgeResponse(score, wantJson) };
     }
     const input = await readInput(request, url);
     if (!input.ok)
-        return json({ ok: false, error: input.error }, 400);
+        return { response: json({ ok: false, error: input.error }, 400) };
     const result = await scoreSource(input.value, { timeoutMs: TIMEOUT_MS });
     if (!result.ok)
-        return json(result, 400);
-    return badgeResponse(result.score, wantJson);
+        return { response: json(result, 400), targetUrl: input.value.url };
+    return { response: badgeResponse(result.score, wantJson), targetUrl: input.value.url };
 }
 function badgeResponse(score, wantJson) {
     if (wantJson) {
