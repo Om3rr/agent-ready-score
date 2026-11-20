@@ -75,3 +75,8 @@ describe("landing page", () => {
     assert.match(out, /badge\?url=https%3A%2F%2Fevil\.example%2F%22%3E%3Cimg/);
   });
 });
+
+it('landing: footer contact is a real mailto', () => {
+  const html = readFileSync(new URL('../worker/public/index.html', import.meta.url), 'utf8');
+  assert.match(html, /Contact: <a href="mailto:omer20sh@gmail\.com">omer20sh@gmail\.com<\/a>/);
+});
