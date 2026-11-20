@@ -1,4 +1,5 @@
-export interface Env {
+import { type CtaEnv } from "./cta.js";
+export interface Env extends CtaEnv {
     ASSETS?: {
         fetch: typeof fetch;
     };

@@ -1,0 +1,2195 @@
+{
+ "recorded": "2026-11-20T16:24:00.884Z",
+ "recordedLocal": "20 November 2026, 18:24 Israel time",
+ "tool": "agent-ready-score 0.1.0 (scripts/score-leaderboard.mjs)",
+ "failed": [
+  {
+   "id": "supabase",
+   "name": "Supabase Management API",
+   "error": "fetch failed"
+  },
+  {
+   "id": "mux",
+   "name": "Mux Video API",
+   "error": "Could not fetch https://raw.githubusercontent.com/muxinc/openapi-specification/master/swagger.json (HTTP 404)."
+  }
+ ],
+ "results": [
+  {
+   "id": "asana",
+   "name": "Asana API",
+   "spec": "https://raw.githubusercontent.com/Asana/openapi/master/defs/asana_oas.yaml",
+   "origin": "https://app.asana.com",
+   "score": 80,
+   "categories": {
+    "discoverability": 56,
+    "docs": 94.2,
+    "errors": 79.7,
+    "auth": 100,
+    "mcp": 70
+   },
+   "operations": 271,
+   "toolTokens": 134233,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://app.asana.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (134233 tokens, 271 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    },
+    {
+     "status": "warn",
+     "title": "OpenAPI document found, but not advertised on the origin",
+     "fix": "Also serve the spec at https://app.asana.com/openapi.json or https://app.asana.com/.well-known/openapi.json so agents can find it without a bookmark."
+    },
+    {
+     "status": "warn",
+     "title": "robots.txt exists but has no AI-crawler or llms.txt rules",
+     "fix": "Update https://app.asana.com/robots.txt with an explicit policy for AI crawlers and a comment pointing at /llms.txt."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "pass",
+    "discover.robots": "warn",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "figma",
+   "name": "Figma REST API",
+   "spec": "https://raw.githubusercontent.com/figma/rest-api-spec/main/openapi/openapi.yaml",
+   "origin": "https://api.figma.com",
+   "score": 78,
+   "categories": {
+    "discoverability": 46,
+    "docs": 69.7,
+    "errors": 79.5,
+    "auth": 100,
+    "mcp": 93.2
+   },
+   "operations": 59,
+   "toolTokens": 12141,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.figma.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.figma.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "warn",
+     "title": "OpenAPI document found, but not advertised on the origin",
+     "fix": "Also serve the spec at https://api.figma.com/openapi.json or https://api.figma.com/.well-known/openapi.json so agents can find it without a bookmark."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "pass",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "warn"
+   }
+  },
+  {
+   "id": "slack",
+   "name": "Slack Web API",
+   "spec": "https://raw.githubusercontent.com/slackapi/slack-api-specs/master/web-api/slack_web_openapi_v2.json",
+   "origin": "https://slack.com",
+   "score": 75,
+   "categories": {
+    "discoverability": 90,
+    "docs": 26.7,
+    "errors": 80,
+    "auth": 100,
+    "mcp": 80.4
+   },
+   "operations": 174,
+   "toolTokens": 27464,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "Many operations lack a summary",
+     "fix": "Add a short `summary` to every operation so agents can pick the right tool without reading a long description."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (27464 tokens, 174 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    },
+    {
+     "status": "warn",
+     "title": "robots.txt exists but has no AI-crawler or llms.txt rules",
+     "fix": "Update https://slack.com/robots.txt with an explicit policy for AI crawlers and a comment pointing at /llms.txt."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "pass",
+    "discover.llms_txt": "pass",
+    "discover.well_known": "pass",
+    "discover.robots": "warn",
+    "docs.summaries": "fail",
+    "docs.descriptions": "warn",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "linode",
+   "name": "Linode (Akamai) API",
+   "spec": "https://raw.githubusercontent.com/linode/linode-api-docs/development/openapi.json",
+   "origin": "https://api.linode.com",
+   "score": 74,
+   "categories": {
+    "discoverability": 21,
+    "docs": 100,
+    "errors": 78.8,
+    "auth": 98.7,
+    "mcp": 69.9
+   },
+   "operations": 449,
+   "toolTokens": 266735,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.linode.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.linode.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.linode.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (266735 tokens, 449 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "box",
+   "name": "Box Platform API",
+   "spec": "https://raw.githubusercontent.com/box/box-openapi/main/openapi.json",
+   "origin": "https://api.box.com",
+   "score": 72,
+   "categories": {
+    "discoverability": 33.5,
+    "docs": 89.8,
+    "errors": 80,
+    "auth": 90,
+    "mcp": 67.5
+   },
+   "operations": 297,
+   "toolTokens": 89078,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.box.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.box.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (89078 tokens, 297 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    },
+    {
+     "status": "warn",
+     "title": "OpenAPI document found, but not advertised on the origin",
+     "fix": "Also serve the spec at https://api.box.com/openapi.json or https://api.box.com/.well-known/openapi.json so agents can find it without a bookmark."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "warn",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "warn",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "plaid",
+   "name": "Plaid API",
+   "spec": "https://raw.githubusercontent.com/plaid/plaid-openapi/master/2020-09-14.yml",
+   "origin": "https://production.plaid.com",
+   "score": 72,
+   "categories": {
+    "discoverability": 21,
+    "docs": 98.6,
+    "errors": 68.8,
+    "auth": 100,
+    "mcp": 69.9
+   },
+   "operations": 351,
+   "toolTokens": 46673,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://production.plaid.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://production.plaid.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://production.plaid.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (46673 tokens, 351 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "spotify",
+   "name": "Spotify Web API",
+   "spec": "https://developer.spotify.com/reference/web-api/open-api-schema.yaml",
+   "origin": "https://api.spotify.com",
+   "score": 71,
+   "categories": {
+    "discoverability": 31,
+    "docs": 87.9,
+    "errors": 50,
+    "auth": 100,
+    "mcp": 83.9
+   },
+   "operations": 96,
+   "toolTokens": 23347,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.spotify.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.spotify.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "warn",
+     "title": "OpenAPI document found, but not advertised on the origin",
+     "fix": "Also serve the spec at https://api.spotify.com/openapi.json or https://api.spotify.com/.well-known/openapi.json so agents can find it without a bookmark."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "warn",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "warn",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "warn"
+   }
+  },
+  {
+   "id": "adyen",
+   "name": "Adyen Checkout API v71",
+   "spec": "https://raw.githubusercontent.com/Adyen/adyen-openapi/main/json/CheckoutService-v71.json",
+   "origin": "https://checkout-test.adyen.com",
+   "score": 70,
+   "categories": {
+    "discoverability": 21,
+    "docs": 97,
+    "errors": 57.1,
+    "auth": 74.9,
+    "mcp": 99.4
+   },
+   "operations": 28,
+   "toolTokens": 4679,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://checkout-test.adyen.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://checkout-test.adyen.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://checkout-test.adyen.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "warn",
+     "title": "OpenAPI document found, but not advertised on the origin",
+     "fix": "Also serve the spec at https://checkout-test.adyen.com/openapi.json or https://checkout-test.adyen.com/.well-known/openapi.json so agents can find it without a bookmark."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "pass",
+    "errors.4xx": "warn",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "pass"
+   }
+  },
+  {
+   "id": "render",
+   "name": "Render Public API",
+   "spec": "https://api-docs.render.com/openapi/render-public-api-1.json",
+   "origin": "https://api.render.com",
+   "score": 69,
+   "categories": {
+    "discoverability": 43.5,
+    "docs": 76.4,
+    "errors": 80,
+    "auth": 75.8,
+    "mcp": 69.9
+   },
+   "operations": 265,
+   "toolTokens": 41484,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.render.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (41484 tokens, 265 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    },
+    {
+     "status": "warn",
+     "title": "OpenAPI document found, but not advertised on the origin",
+     "fix": "Also serve the spec at https://api.render.com/openapi.json or https://api.render.com/.well-known/openapi.json so agents can find it without a bookmark."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "warn",
+    "discover.robots": "warn",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "sendgrid",
+   "name": "Twilio SendGrid Mail v3",
+   "spec": "https://raw.githubusercontent.com/twilio/sendgrid-oai/main/spec/json/tsg_mail_v3.json",
+   "origin": "https://api.sendgrid.com",
+   "score": 68,
+   "categories": {
+    "discoverability": 21,
+    "docs": 75,
+    "errors": 80,
+    "auth": 75.8,
+    "mcp": 88.3
+   },
+   "operations": 3,
+   "toolTokens": 508,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.sendgrid.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.sendgrid.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.sendgrid.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "warn",
+    "mcp.tool_list_tokens": "pass"
+   }
+  },
+  {
+   "id": "neon",
+   "name": "Neon API v2",
+   "spec": "https://neon.tech/api_spec/release/v2.json",
+   "origin": "https://console.neon.tech",
+   "score": 68,
+   "categories": {
+    "discoverability": 30,
+    "docs": 80.9,
+    "errors": 80,
+    "auth": 75.8,
+    "mcp": 73.5
+   },
+   "operations": 195,
+   "toolTokens": 35813,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://console.neon.tech/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://console.neon.tech/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://console.neon.tech/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (35813 tokens, 195 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "pass",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "warn",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "digitalocean",
+   "name": "DigitalOcean API",
+   "spec": "https://api-engineering.nyc3.cdn.digitaloceanspaces.com/spec-ci/DigitalOcean-public.v2.yaml",
+   "origin": "https://api.digitalocean.com",
+   "score": 66,
+   "categories": {
+    "discoverability": 21,
+    "docs": 78.9,
+    "errors": 80,
+    "auth": 78.8,
+    "mcp": 70
+   },
+   "operations": 916,
+   "toolTokens": 135306,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.digitalocean.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.digitalocean.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.digitalocean.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (135306 tokens, 916 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "warn",
+    "docs.info": "warn",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "intercom",
+   "name": "Intercom API 2.11",
+   "spec": "https://raw.githubusercontent.com/intercom/Intercom-OpenAPI/main/descriptions/2.11/api.intercom.io.yaml",
+   "origin": "https://api.intercom.io",
+   "score": 66,
+   "categories": {
+    "discoverability": 31,
+    "docs": 89.2,
+    "errors": 45.8,
+    "auth": 75.8,
+    "mcp": 90.1
+   },
+   "operations": 108,
+   "toolTokens": 15848,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.intercom.io/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.intercom.io/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "warn",
+     "title": "OpenAPI document found, but not advertised on the origin",
+     "fix": "Also serve the spec at https://api.intercom.io/openapi.json or https://api.intercom.io/.well-known/openapi.json so agents can find it without a bookmark."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "warn",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "warn",
+    "errors.4xx": "pass",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "warn"
+   }
+  },
+  {
+   "id": "hetzner",
+   "name": "Hetzner Cloud API",
+   "spec": "https://docs.hetzner.cloud/cloud.spec.json",
+   "origin": "https://api.hetzner.cloud",
+   "score": 66,
+   "categories": {
+    "discoverability": 21,
+    "docs": 94.3,
+    "errors": 70,
+    "auth": 75.8,
+    "mcp": 70
+   },
+   "operations": 190,
+   "toolTokens": 59381,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.hetzner.cloud/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.hetzner.cloud/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.hetzner.cloud/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "No default or shared error response",
+     "fix": "Define one error schema under components.schemas and reuse it via $ref, plus a `default` response on each operation."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "fail",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "stripe",
+   "name": "Stripe API",
+   "spec": "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json",
+   "origin": "https://api.stripe.com",
+   "score": 65,
+   "categories": {
+    "discoverability": 31,
+    "docs": 70.3,
+    "errors": 80,
+    "auth": 75.8,
+    "mcp": 70
+   },
+   "operations": 612,
+   "toolTokens": 458437,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.stripe.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.stripe.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (458437 tokens, 612 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "warn",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "launchdarkly",
+   "name": "LaunchDarkly REST API",
+   "spec": "https://app.launchdarkly.com/api/v2/openapi.json",
+   "origin": "https://app.launchdarkly.com",
+   "score": 65,
+   "categories": {
+    "discoverability": 43.5,
+    "docs": 73.7,
+    "errors": 59.5,
+    "auth": 78.8,
+    "mcp": 69.8
+   },
+   "operations": 417,
+   "toolTokens": 82660,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://app.launchdarkly.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (82660 tokens, 417 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    },
+    {
+     "status": "warn",
+     "title": "OpenAPI document found, but not advertised on the origin",
+     "fix": "Also serve the spec at https://app.launchdarkly.com/openapi.json or https://app.launchdarkly.com/.well-known/openapi.json so agents can find it without a bookmark."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "warn",
+    "discover.robots": "warn",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "warn",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "pagerduty",
+   "name": "PagerDuty REST API",
+   "spec": "https://raw.githubusercontent.com/PagerDuty/api-schema/main/reference/REST/openapiv3.json",
+   "origin": "https://api.pagerduty.com",
+   "score": 63,
+   "categories": {
+    "discoverability": 21,
+    "docs": 92.7,
+    "errors": 59.7,
+    "auth": 75.8,
+    "mcp": 68.2
+   },
+   "operations": 473,
+   "toolTokens": 96827,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.pagerduty.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.pagerduty.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.pagerduty.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (96827 tokens, 473 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "warn",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "sentry",
+   "name": "Sentry API",
+   "spec": "https://raw.githubusercontent.com/getsentry/sentry-api-schema/main/openapi-derefed.json",
+   "origin": "https://sentry.io",
+   "score": 63,
+   "categories": {
+    "discoverability": 90,
+    "docs": 77.7,
+    "errors": 0.4,
+    "auth": 78.7,
+    "mcp": 66
+   },
+   "operations": 295,
+   "toolTokens": 190142,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 4xx responses",
+     "fix": "Document 400/401/403/404/409 responses with a schema so agents can parse failures instead of guessing."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "No default or shared error response",
+     "fix": "Define one error schema under components.schemas and reuse it via $ref, plus a `default` response on each operation."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (190142 tokens, 295 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "pass",
+    "discover.llms_txt": "pass",
+    "discover.well_known": "pass",
+    "discover.robots": "warn",
+    "docs.summaries": "warn",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "warn",
+    "errors.4xx": "fail",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "fail",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "warn",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "netlify",
+   "name": "Netlify API",
+   "spec": "https://open-api.netlify.com/swagger.json",
+   "origin": "https://api.netlify.com",
+   "score": 63,
+   "categories": {
+    "discoverability": 21,
+    "docs": 53,
+    "errors": 76.6,
+    "auth": 80,
+    "mcp": 82
+   },
+   "operations": 188,
+   "toolTokens": 25660,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.netlify.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.netlify.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.netlify.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack a useful description",
+     "fix": "Write a `description` on each operation that says what it does, when to call it, and what it returns. Agents cannot ask a teammate."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "fail",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "fail",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "mailchimp",
+   "name": "Mailchimp Marketing API",
+   "spec": "https://api.mailchimp.com/schema/3.0/Swagger.json?expand",
+   "origin": "https://us1.api.mailchimp.com",
+   "score": 63,
+   "categories": {
+    "discoverability": 31,
+    "docs": 57.1,
+    "errors": 80,
+    "auth": 75.8,
+    "mcp": 70
+   },
+   "operations": 309,
+   "toolTokens": 136585,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://us1.api.mailchimp.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://us1.api.mailchimp.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    },
+    {
+     "status": "fail",
+     "title": "Generated tool list is expensive (136585 tokens, 309 operations)",
+     "fix": "Split the API into smaller tool surfaces, shorten descriptions, and drop unused operations. A generated MCP server that exposes every path will overflow the context window."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "warn",
+    "docs.summaries": "pass",
+    "docs.descriptions": "warn",
+    "docs.examples": "fail",
+    "docs.info": "warn",
+    "errors.4xx": "pass",
+    "errors.5xx": "pass",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "jira",
+   "name": "Jira Cloud Platform REST v3",
+   "spec": "https://developer.atlassian.com/cloud/jira/platform/swagger-v3.v3.json",
+   "origin": "https://your-domain.atlassian.net",
+   "score": 62,
+   "categories": {
+    "discoverability": 31,
+    "docs": 96,
+    "errors": 13.6,
+    "auth": 99.7,
+    "mcp": 69.2
+   },
+   "operations": 630,
+   "toolTokens": 140839,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://your-domain.atlassian.net/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://your-domain.atlassian.net/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 4xx responses",
+     "fix": "Document 400/401/403/404/409 responses with a schema so agents can parse failures instead of guessing."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "warn",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "pass",
+    "errors.4xx": "fail",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "fail",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "discord",
+   "name": "Discord HTTP API",
+   "spec": "https://raw.githubusercontent.com/discord/discord-api-spec/main/specs/openapi.json",
+   "origin": "https://discord.com",
+   "score": 61,
+   "categories": {
+    "discoverability": 56,
+    "docs": 12.9,
+    "errors": 50,
+    "auth": 100,
+    "mcp": 84.8
+   },
+   "operations": 250,
+   "toolTokens": 22290,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://discord.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack a summary",
+     "fix": "Add a short `summary` to every operation so agents can pick the right tool without reading a long description."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack a useful description",
+     "fix": "Write a `description` on each operation that says what it does, when to call it, and what it returns. Agents cannot ask a teammate."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "pass",
+    "discover.robots": "warn",
+    "docs.summaries": "fail",
+    "docs.descriptions": "fail",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "warn"
+   }
+  },
+  {
+   "id": "cloudflare",
+   "name": "Cloudflare API",
+   "spec": "https://raw.githubusercontent.com/cloudflare/api-schemas/main/openapi.json",
+   "origin": "https://api.cloudflare.com",
+   "score": 60,
+   "categories": {
+    "discoverability": 33.5,
+    "docs": 74.7,
+    "errors": 49.1,
+    "auth": 75.7,
+    "mcp": 68.7
+   },
+   "operations": 3781,
+   "toolTokens": 929295,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.cloudflare.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.cloudflare.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "warn",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "warn",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "openai",
+   "name": "OpenAI API",
+   "spec": "https://raw.githubusercontent.com/openai/openai-openapi/master/openapi.yaml",
+   "origin": "https://api.openai.com",
+   "score": 59,
+   "categories": {
+    "discoverability": 21,
+    "docs": 69.1,
+    "errors": 57.4,
+    "auth": 75.8,
+    "mcp": 69.7
+   },
+   "operations": 388,
+   "toolTokens": 56898,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.openai.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.openai.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.openai.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "warn",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "warn",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "flyio",
+   "name": "Fly.io Machines API",
+   "spec": "https://docs.machines.dev/spec/openapi3.json",
+   "origin": "https://api.machines.dev",
+   "score": 59,
+   "categories": {
+    "discoverability": 21,
+    "docs": 67.3,
+    "errors": 38.8,
+    "auth": 75.8,
+    "mcp": 92.5
+   },
+   "operations": 104,
+   "toolTokens": 13013,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.machines.dev/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.machines.dev/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.machines.dev/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "warn",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "warn",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "warn",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "warn"
+   }
+  },
+  {
+   "id": "clerk",
+   "name": "Clerk Backend API",
+   "spec": "https://raw.githubusercontent.com/clerk/openapi-specs/main/bapi/2025-11-10.yml",
+   "origin": "https://api.clerk.com",
+   "score": 57,
+   "categories": {
+    "discoverability": 21,
+    "docs": 67.7,
+    "errors": 51.1,
+    "auth": 75.8,
+    "mcp": 70
+   },
+   "operations": 247,
+   "toolTokens": 63198,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.clerk.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.clerk.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.clerk.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "warn",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "pass",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "vercel",
+   "name": "Vercel REST API",
+   "spec": "https://openapi.vercel.sh/",
+   "origin": "https://api.vercel.com",
+   "score": 56,
+   "categories": {
+    "discoverability": 31,
+    "docs": 89.6,
+    "errors": 8.4,
+    "auth": 80,
+    "mcp": 70
+   },
+   "operations": 493,
+   "toolTokens": 192374,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.vercel.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.vercel.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 4xx responses",
+     "fix": "Document 400/401/403/404/409 responses with a schema so agents can parse failures instead of guessing."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "warn",
+    "docs.summaries": "pass",
+    "docs.descriptions": "warn",
+    "docs.examples": "pass",
+    "docs.info": "pass",
+    "errors.4xx": "fail",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "fail",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "fail",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "xero",
+   "name": "Xero Accounting API",
+   "spec": "https://raw.githubusercontent.com/XeroAPI/Xero-OpenAPI/master/xero_accounting.yaml",
+   "origin": "https://api.xero.com",
+   "score": 55,
+   "categories": {
+    "discoverability": 21,
+    "docs": 52.4,
+    "errors": 21.5,
+    "auth": 100,
+    "mcp": 79.6
+   },
+   "operations": 235,
+   "toolTokens": 25632,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.xero.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.xero.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.xero.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack a useful description",
+     "fix": "Write a `description` on each operation that says what it does, when to call it, and what it returns. Agents cannot ask a teammate."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "fail",
+    "docs.examples": "pass",
+    "docs.info": "warn",
+    "errors.4xx": "warn",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "warn",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "petstore",
+   "name": "Swagger Petstore 3",
+   "spec": "https://petstore3.swagger.io/api/v3/openapi.json",
+   "origin": null,
+   "score": 53,
+   "categories": {
+    "discoverability": 21,
+    "docs": 58.4,
+    "errors": 0,
+    "auth": 86.8,
+    "mcp": 100
+   },
+   "operations": 19,
+   "toolTokens": 1422,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://petstore3.swagger.io/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://petstore3.swagger.io/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://petstore3.swagger.io/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 4xx responses",
+     "fix": "Document 400/401/403/404/409 responses with a schema so agents can parse failures instead of guessing."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "warn",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "fail",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "fail",
+    "auth.schemes": "pass",
+    "auth.applied": "warn",
+    "auth.oauth": "pass",
+    "auth.scopes": "pass",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "pass"
+   }
+  },
+  {
+   "id": "mistral",
+   "name": "Mistral AI API",
+   "spec": "https://docs.mistral.ai/openapi.yaml",
+   "origin": "https://api.mistral.ai",
+   "score": 52,
+   "categories": {
+    "discoverability": 21,
+    "docs": 56.9,
+    "errors": 37,
+    "auth": 75.8,
+    "mcp": 70
+   },
+   "operations": 347,
+   "toolTokens": 44065,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.mistral.ai/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.mistral.ai/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.mistral.ai/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "warn",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "warn",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "pass",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "twilio",
+   "name": "Twilio API (2010)",
+   "spec": "https://raw.githubusercontent.com/twilio/twilio-oai/main/spec/json/twilio_api_v2010.json",
+   "origin": "https://api.twilio.com",
+   "score": 47,
+   "categories": {
+    "discoverability": 21,
+    "docs": 65.5,
+    "errors": 0.4,
+    "auth": 75.8,
+    "mcp": 70
+   },
+   "operations": 197,
+   "toolTokens": 86964,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.twilio.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.twilio.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.twilio.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 4xx responses",
+     "fix": "Document 400/401/403/404/409 responses with a schema so agents can parse failures instead of guessing."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "warn",
+    "docs.descriptions": "warn",
+    "docs.examples": "pass",
+    "docs.info": "warn",
+    "errors.4xx": "fail",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "fail",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "resend",
+   "name": "Resend API",
+   "spec": "https://raw.githubusercontent.com/resend/resend-openapi/main/resend.yaml",
+   "origin": "https://api.resend.com",
+   "score": 45,
+   "categories": {
+    "discoverability": 46,
+    "docs": 50.6,
+    "errors": 0,
+    "auth": 75.8,
+    "mcp": 54.2
+   },
+   "operations": 144,
+   "toolTokens": 16949,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.resend.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.resend.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack a useful description",
+     "fix": "Write a `description` on each operation that says what it does, when to call it, and what it returns. Agents cannot ask a teammate."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 4xx responses",
+     "fix": "Document 400/401/403/404/409 responses with a schema so agents can parse failures instead of guessing."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "pass",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "fail",
+    "docs.examples": "fail",
+    "docs.info": "pass",
+    "errors.4xx": "fail",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "fail",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "fail",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "warn"
+   }
+  },
+  {
+   "id": "kubernetes",
+   "name": "Kubernetes API",
+   "spec": "https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json",
+   "origin": null,
+   "score": 38,
+   "categories": {
+    "discoverability": 21,
+    "docs": 22.6,
+    "errors": 0,
+    "auth": 75.8,
+    "mcp": 70
+   },
+   "operations": 1175,
+   "toolTokens": 355975,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://raw.githubusercontent.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://raw.githubusercontent.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://raw.githubusercontent.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack a summary",
+     "fix": "Add a short `summary` to every operation so agents can pick the right tool without reading a long description."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations have no examples",
+     "fix": "Add `example` or `examples` on request bodies and success responses so agents can see a valid payload."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "fail",
+    "docs.descriptions": "warn",
+    "docs.examples": "fail",
+    "docs.info": "warn",
+    "errors.4xx": "fail",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "fail",
+    "auth.schemes": "pass",
+    "auth.applied": "pass",
+    "auth.oauth": "warn",
+    "auth.scopes": "warn",
+    "mcp.operation_ids": "pass",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  },
+  {
+   "id": "github",
+   "name": "GitHub REST API",
+   "spec": "https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json",
+   "origin": "https://api.github.com",
+   "score": 36,
+   "categories": {
+    "discoverability": 21,
+    "docs": 87.5,
+    "errors": 37.9,
+    "auth": 0,
+    "mcp": 35
+   },
+   "operations": 1281,
+   "toolTokens": 312817,
+   "fixes": [
+    {
+     "status": "fail",
+     "title": "No llms.txt at the origin",
+     "fix": "Publish a short curated map at https://api.github.com/llms.txt (see https://llmstxt.org) and point it at clean markdown copies of your API docs."
+    },
+    {
+     "status": "fail",
+     "title": "No well-known MCP, agent, OAuth, or API-catalog documents",
+     "fix": "Add machine-readable discovery under https://api.github.com/.well-known/: for example oauth-protected-resource, mcp.json or an MCP server card, and api-catalog."
+    },
+    {
+     "status": "fail",
+     "title": "No robots.txt at the origin",
+     "fix": "Add https://api.github.com/robots.txt and mention /llms.txt or your policy for AI crawlers (GPTBot, ClaudeBot, Google-Extended, and similar)."
+    },
+    {
+     "status": "fail",
+     "title": "Many operations lack documented 5xx responses",
+     "fix": "Add a 500 or 5XX response with the same error schema, or a `default` response that covers unexpected failures."
+    },
+    {
+     "status": "fail",
+     "title": "Errors are not advertised as application/problem+json",
+     "fix": "Advertise `application/problem+json` (RFC 9457) on 4xx/5xx responses so agents get a consistent type, title, status, and detail."
+    }
+   ],
+   "checks": {
+    "discover.openapi": "warn",
+    "discover.llms_txt": "fail",
+    "discover.well_known": "fail",
+    "discover.robots": "fail",
+    "docs.summaries": "pass",
+    "docs.descriptions": "pass",
+    "docs.examples": "pass",
+    "docs.info": "warn",
+    "errors.4xx": "warn",
+    "errors.5xx": "fail",
+    "errors.problem_json": "fail",
+    "errors.shared": "warn",
+    "auth.schemes": "fail",
+    "auth.applied": "fail",
+    "auth.oauth": "fail",
+    "auth.scopes": "fail",
+    "mcp.operation_ids": "fail",
+    "mcp.param_schemas": "pass",
+    "mcp.tool_list_tokens": "fail"
+   }
+  }
+ ]
+}

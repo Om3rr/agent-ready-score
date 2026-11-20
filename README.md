@@ -10,6 +10,10 @@ Most APIs were designed for people who can read docs and ask a teammate when a c
 
 The evidence that backs this product is in [EVIDENCE.md](EVIDENCE.md). Sample scores against public specs are in [SAMPLES.md](SAMPLES.md).
 
+## Public leaderboard
+
+Open-source scores of 34 well-known public APIs (Stripe, GitHub, OpenAI, Slack and more), recorded 20 November 2026, with fixes for each: `/scores/` on the hosted page. Data: [samples/leaderboard-2026-11-20.json](samples/leaderboard-2026-11-20.json). Measurement and UTM conventions: [MEASUREMENT.md](MEASUREMENT.md).
+
 ## Score categories
 
 Each category is 20% of the overall score. Failed and warned checks include a fix.
