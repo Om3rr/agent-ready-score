@@ -1,7 +1,6 @@
 {
   "name": "agent-ready-score",
   "version": "0.1.0",
-  "private": true,
   "description": "Score how ready an API is for AI agents: paste an OpenAPI spec or URL, get a 0-100 score, category breakdown, concrete fixes, a README badge, and a CI Action.",
   "type": "module",
   "bin": {

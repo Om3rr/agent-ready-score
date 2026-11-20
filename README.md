@@ -60,17 +60,27 @@ The Action can write Shields.io endpoint JSON:
 { "schemaVersion": 1, "label": "agent-ready", "message": "82", "color": "yellow" }
 ```
 
-Point a Shields badge at a hosted endpoint, or use the Worker’s `/badge?url=` (SVG) and `/badge?url=&format=json` (endpoint JSON) once the Worker is deployed.
+Use the hosted badge, or point Shields at the endpoint JSON:
 
-## Hosted page (not deployed from this repo)
+```markdown
+![agent-ready](https://agent-ready-score.omer20sh.workers.dev/badge?url=https://petstore3.swagger.io/api/v3/openapi.json)
+```
 
-`worker/` is a Cloudflare Worker that serves:
+`GET /badge?url=…&format=json` returns Shields.io endpoint JSON.
+
+## Hosted page
+
+The Worker is live on the free `workers.dev` subdomain (no custom domain):
+
+**https://agent-ready-score.omer20sh.workers.dev**
+
+It serves:
 
 - a paste-and-score landing page
 - `POST /api/score` and `GET /api/score?url=`
 - `GET /badge?url=` (SVG) and `GET /badge?format=json&url=` (Shields endpoint)
 
-CI runs `wrangler deploy --dry-run` only. Nothing here is deployed, and this repo does not contain Cloudflare credentials.
+This repository does not contain Cloudflare credentials. CI still dry-runs deploys.
 
 ## Library
 
@@ -91,4 +101,4 @@ npm test
 npm run dry-run   # wrangler deploy --dry-run, not a real deploy
 ```
 
-License: MIT (see [LICENSE](LICENSE)). The repository is private until it is intentionally made public.
+License: MIT (see [LICENSE](LICENSE)).
