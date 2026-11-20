@@ -51,7 +51,7 @@ const FOOT = `<p class="mut" style="margin-top:40px;font-size:14px">Automated sc
 const ACTION = (medium, content) => `${REPO}?${utm(medium, "action", content)}#github-action`;
 const page = ({ title, desc, path, body, ld }) => `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${SITE}${path}">
-<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE}${path}"><meta property="og:type" content="website">
+<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE}${path}"><meta property="og:type" content="website"><meta property="og:site_name" content="Agent-Ready Score"><meta property="og:image" content="${SITE}/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}"><meta name="twitter:image" content="${SITE}/og.png">
 <link rel="alternate" type="text/plain" href="${SITE}/llms.txt" title="llms.txt"><link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>
 <style>${CSS}</style></head><body><div class="wrap">${NAV}<main>${body}${FOOT}</main>${SITE_FOOT}</div><script src="/t.js" defer></script></body></html>
