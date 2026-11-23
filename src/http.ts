@@ -7,6 +7,8 @@ const WORKER_NAME = "agent-ready-score";
 export interface Env {
   ASSETS?: { fetch: typeof fetch };
   METRICS?: MetricsDB;
+  /** HTML-tag token from Google Search Console. Empty until set. */
+  GOOGLE_SITE_VERIFICATION?: string;
 }
 
 type ExecutionCtx = { waitUntil?: (p: Promise<unknown>) => void };
@@ -14,6 +16,25 @@ type ExecutionCtx = { waitUntil?: (p: Promise<unknown>) => void };
 const URL_ERROR = "Only absolute http(s) URLs are supported.";
 const MAX_SPEC_CHARS = 2_000_000;
 const TIMEOUT_MS = 20000;
+
+/** Emit a google-site-verification meta tag when the wrangler var is set. Empty value: no tag. */
+export function withGoogleVerification(response: Response, env: Env): Response | Promise<Response> {
+  const token = String(env.GOOGLE_SITE_VERIFICATION || "").trim();
+  if (!token) return response;
+  const ctype = response.headers.get("content-type") || "";
+  if (!ctype.includes("text/html")) return response;
+  return (async () => {
+    const html = await response.text();
+    if (/name=["']google-site-verification["']/i.test(html)) {
+      return new Response(html, response);
+    }
+    const esc: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+    const tag = `<meta name="google-site-verification" content="${token.replace(/[&<>"']/g, (c) => esc[c] || c)}">`;
+    const next = html.replace(/<head([^>]*)>/i, (m) => `${m}${tag}`);
+    const headers = new Headers(response.headers);
+    return new Response(next, { status: response.status, statusText: response.statusText, headers });
+  })();
+}
 
 export default {
   async fetch(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response> {
@@ -72,7 +93,7 @@ export async function handleRequest(request: Request, env: Env = {}, ctx?: Execu
     if (path === "/api/score" || path.startsWith("/badge")) scan = "fail";
   }
 
-  response = withSecurityHeaders(response);
+  response = withSecurityHeaders(await withGoogleVerification(response, env));
   const events = scan ? ["scan_started"] : [];
   scheduleTrack(ctx, env, request, { worker: WORKER_NAME, route: bucketRoute(path), scan, badge, targetUrl, events });
   return response;

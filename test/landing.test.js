@@ -94,3 +94,11 @@ describe('OG/meta', () => {
     assert.equal(png.readUInt32BE(16), 1200); assert.equal(png.readUInt32BE(20), 630);
   });
 });
+
+it("IndexNow key file is in public assets; GSC verification hook is off when the var is empty", () => {
+  const key = "058a90c481658e80a37ea02a7b07559a";
+  const body = read(key + ".txt");
+  assert.equal(body.trim(), key);
+  const home = read("index.html");
+  assert.ok(!/google-site-verification/.test(home));
+});
