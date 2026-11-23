@@ -6,6 +6,9 @@
     "enabled": true,
     "traces": { "enabled": true }
   },
+  "vars": {
+    "GOOGLE_SITE_VERIFICATION": ""
+  },
   "assets": {
     "directory": "worker/public",
     "binding": "ASSETS",

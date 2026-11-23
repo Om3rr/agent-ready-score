@@ -4,10 +4,14 @@ export interface Env {
         fetch: typeof fetch;
     };
     METRICS?: MetricsDB;
+    /** HTML-tag token from Google Search Console. Empty until set. */
+    GOOGLE_SITE_VERIFICATION?: string;
 }
 type ExecutionCtx = {
     waitUntil?: (p: Promise<unknown>) => void;
 };
+/** Emit a google-site-verification meta tag when the wrangler var is set. Empty value: no tag. */
+export declare function withGoogleVerification(response: Response, env: Env): Response | Promise<Response>;
 declare const _default: {
     fetch(request: Request, env: Env, ctx?: ExecutionCtx): Promise<Response>;
 };
